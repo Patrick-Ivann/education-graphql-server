@@ -1,0 +1,218 @@
+mutation {
+  pushCourse(
+    title: "title"
+    subtitle: "sous titre"
+    objectives: "objectif 1, objectif 2, objectif 3"
+    requirements: "requis 1 , requis 3"
+    introduction: "intro"
+  ) {
+    id
+    title
+    subtitle
+    introduction
+    objectives
+    requirements
+  }
+}
+
+
+{
+  course(id: "5cd20734af3e1ef87d44864c") {
+    id
+    title
+    subtitle
+    introduction
+    objectives
+    requirements
+  }
+}
+
+
+mutation {
+  updateModule(
+  	id : "5cd201657877b10137e05df5",
+    title:"update",
+    subtitle:"sous update titre",
+    objectives:"objectif 1, objectif 2, objectif 3",
+    requirements:"requis 1 , requis 3",
+    introduction:"intro"
+  ) {
+    id
+    title
+    subtitle
+    objectives
+    requirements
+    introduction
+  }
+}
+
+
+mutation{popModule(title:"title",id: "5cd201657877b10137e05df5")}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mutation {
+  pushModule(
+    title: "title"
+    subtitle: "sous titre"
+    objectives: "objectif 1, objectif 2, objectif 3"
+    requirements: "requis 1 , requis 3"
+    introduction: "intro"
+  ) {
+    id
+    title
+    subtitle
+    objectives
+    requirements
+    introduction
+  }
+}
+
+
+{
+  modules {
+    title
+    subtitle
+    introduction
+    
+    objectives
+    requirements
+  }
+}
+
+
+mutation {
+  updateModule(
+  	id : "5cd201657877b10137e05df5",
+    title:"update",
+    subtitle:"sous update titre",
+    objectives:"objectif 1, objectif 2, objectif 3",
+    requirements:"requis 1 , requis 3",
+    introduction:"intro"
+  ) {
+    id
+    title
+    subtitle
+    objectives
+    requirements
+    introduction
+  }
+}
+
+
+mutation{popModule(title:"title",id: "5cd201657877b10137e05df5")}
+
+
+
+
+mutation {
+  pushArticle(
+  
+    title:"title",
+    subtitle:"sous titre",
+    version:1,
+    objectives:"objectif 1, objectif 2, objectif 3",
+    encoding:"encoding",
+    time:10,
+    requirements:"requis 1 , requis 3",
+    difficulty:"difficultz",
+    introduction:"intro"
+  ) {
+    id
+    title
+    subtitle
+    version
+    objectives
+    encoding
+    time
+    requirements
+    difficulty
+    introduction
+  }
+}
+
+
+
+{
+  articles {
+    id
+    title
+    subtitle
+    version
+    objectives
+    encoding
+    time
+    requirements
+    difficulty
+    introduction
+  }
+}
+
+
+mutation {
+  updateArticle(
+  	id : "5cd1fb8715364e4a76793a76",
+    title:"update",
+    subtitle:"sous update titre",
+    version:2,
+    objectives:"objectif 1, objectif 2, objectif 3",
+    encoding:"encoding",
+    time:10,
+    requirements:"requis 1 , requis 3",
+    difficulty:"difficultz",
+    introduction:"intro"
+  ) {
+    id
+    title
+    subtitle
+    version
+    objectives
+    encoding
+    time
+    requirements
+    difficulty
+    introduction
+  }
+}
+
+
+mutation{popArticle(title:"title",id: "5cd1fbe4f4914147bf2301d8")}
+
+
+
+
+
+
+mutation {
+  pushPart(title: "title", content: "ddddd") {
+    content
+  }
+}
+
+{parts{id,content,title}}
+
+
+mutation {
+  updatePart(content: "update", id: "5cd1e03da2141f1229ac9667") {
+    title
+    content
+  }
+}
+
+
+mutation{popPart(title:"title",id: "5cd1e03da2141f1229ac9667")}

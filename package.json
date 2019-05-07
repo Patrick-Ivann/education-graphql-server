@@ -1,0 +1,53 @@
+{
+  "name": "graphql_server",
+  "version": "1.0.0",
+  "description": "serveur graphQL-express pour tester le temps réel et les notifications",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "startDev": "nodemon ./src/index.js --exec babel-node --presets babel-preset-env",
+    "build-babel": "babel -d ./build ./src -s",
+    "build-publish": "npm run clean && npm run build-babel",
+    "start-publish": "npm run build && node ./build/index.js",
+    "build": "babel -d ./build ./src -s",
+    "prebuild": "rm -rf ./build",
+    "start": " node ./build/index.js",
+    "prestart": "npm build"
+  },
+  "keywords": [
+    "graphQL",
+    "express",
+    "node",
+    "js"
+  ],
+  "author": "flawn",
+  "license": "ISC",
+  "dependencies": {
+    "add": "^2.0.6",
+    "apollo-server-express": "^2.4.8",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.5",
+    "dotenv": "^8.0.0",
+    "express": "^4.16.4",
+    "graphql": "^14.1.1",
+    "graphql-subscriptions": "^1.0.0",
+    "graphql-tools": "^4.0.4",
+    "http": "0.0.0",
+    "joi": "^14.3.1",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.11",
+    "mongodb": "^3.2.2",
+    "subscriptions-transport-ws": "^0.9.16"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-eslint": "^10.0.1",
+    "babel-loader": "^8.0.5",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^5.15.0",
+    "eslint-config-google": "^0.12.0",
+    "nodemon": "^1.18.10"
+  }
+}
