@@ -16,7 +16,8 @@ before_install:
 - mv travis_rsa ~/.ssh/id_rsa
 
 install: 
-- npm install -g babel-cli
+- npm install @babel/cli@^7.0.0-rc.1 -g
+- npm install @babel/core@^7.0.0-rc.1 -g
 - npm install 
 
 after_success:
