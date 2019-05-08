@@ -1,0 +1,24 @@
+language: node_js
+node_js:
+  - "stable"
+cache:
+  directories:
+  - node_modules
+script:
+  - npm run prestart
+cache: npm
+
+
+before_install:
+- openssl aes-256-cbc -K $encrypted_718619174745_key -iv $encrypted_718619174745_iv -in travis_rsa.enc -out travis_rsa -d
+- chmod 600 travis_rsa
+- mv travis_rsa ~/.ssh/id_rsa
+
+after_success:
+- bash ./deploy.sh
+
+
+
+addons:
+  ssh_known_hosts:
+  - 104.248.167.41
