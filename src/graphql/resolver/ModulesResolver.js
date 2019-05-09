@@ -1,4 +1,4 @@
-import { modules, MODULE_SUBSCRIPTION_TOPIC } from "../Resolvers";
+import { modules, MODULE_SUBSCRIPTION_TOPIC, articles } from "../Resolvers";
 import { mongoObjectId } from "../../utils";
 
 import { PubSub } from "graphql-subscriptions";
@@ -36,6 +36,7 @@ export const RESOLVER = {
         pushModule: (root, args) => {
             const newModule = {
                 id: mongoObjectId(),
+                courseId : args.courseId,
                 title: args.title,
                 subtitle: args.subtitle,
                 introduction: args.introduction,
@@ -72,6 +73,8 @@ export const RESOLVER = {
                 if (module.id === args.id) {
 
 
+                    args.courseId && (module.courseId = args.courseId)
+
                       args.title &&( module.title = args.title)
 
                       args.subtitle &&( module.subtitle  = args.subtitle)
@@ -98,8 +101,14 @@ export const RESOLVER = {
     } ,
     Subscription:{
 
-    }
+    },
 
+    Module : {
+
+        chapters(root, args, context, info) {
+            return articles.filter(chapitre => chapitre.courseId === root.id)
+
+        }    }
 
 
 

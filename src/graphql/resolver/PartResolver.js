@@ -1,5 +1,4 @@
 import {
-    parts,
     PART_SUBSCRIPTION_TOPIC
 } from "../Resolvers";
 import {
@@ -8,12 +7,26 @@ import {
 import { PubSub } from "graphql-subscriptions";
 
 
+
+
+
 const pubsub = new PubSub();
 
 /**
  * !GOOD RESOLVER
  * TODO PUT MONGODB resolvers
  */
+
+ export let id = mongoObjectId()
+export let parts = [
+
+    {
+        id : mongoObjectId(),
+        title : "titre téco",
+        content : "content",
+        articleId : id
+    }
+]
 
 
 export const RESOLVERS = {
@@ -43,7 +56,8 @@ export const RESOLVERS = {
             const newPart = {
                 id: mongoObjectId(),
                 title: args.title,
-                content: args.content
+                content: args.content,
+                articleId : args.articleId
             };
             parts.push(newPart);
 

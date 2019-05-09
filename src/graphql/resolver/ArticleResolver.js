@@ -1,13 +1,18 @@
 import {
-    articles, ARTICLE_SUBSCRIPTION_TOPIC
+    ARTICLE_SUBSCRIPTION_TOPIC
 } from "../Resolvers";
 import {
     mongoObjectId
 } from "../../utils";
 import Joi from "Joi";
-import { pushArticle } from "../schema/joi/ExportIndex";
+import {
+    pushArticle
+} from "../schema/joi/ExportIndex";
 
-import { PubSub } from "graphql-subscriptions";
+import {
+    PubSub
+} from "graphql-subscriptions";
+import { parts, id } from "./PartResolver";
 
 
 const pubsub = new PubSub();
@@ -18,17 +23,43 @@ const pubsub = new PubSub();
  * !GOOD RESOLVER, 
  */
 
+
+
+let articles = [
+
+    {
+        id: id,
+        title: "title",
+        subtitle : "sous titre",
+        version: 1,
+        objectives: [
+            "o","bj","ect","if"
+        ],
+        encoding:"encoding",
+        time: "10",
+        requirements: [
+            "re","qui","rem","ents"
+        ],
+        difficulty:"facile",
+        introduction:"introduction"
+    
+    }
+]
+
+
+
 export const RESOLVER = {
 
 
     Query: {
 
         articles: () => articles,
-        article:(root,args) =>{
-            
-            articles.find((element) => {
-                return element.id = args.id;
-              })
+        article: (root, args) => {
+
+            if (!args.id) {
+                throw new Error('id is required')
+            }
+            return articles.find(article => article.id === args.id)
         }
 
     },
@@ -38,9 +69,10 @@ export const RESOLVER = {
             await Joi.validate(args, pushArticle)
             const newArticles = {
                 id: mongoObjectId(),
+                moduleId: args.moduleId,
                 title: args.title,
                 version: args.version,
-                subtitle: args.subtitle,  
+                subtitle: args.subtitle,
                 objectives: args.objectives.split(','),
                 encoding: args.encoding,
                 time: args.time,
@@ -80,20 +112,21 @@ export const RESOLVER = {
             articles.map(article => {
                 if (article.id === args.id) {
 
+                    args.moduleId && (article.moduleId = args.moduleId)
 
                     args.title && (article.title = args.title)
 
-                    args.subtitle && (article.subtitle = args.subtitle) 
+                    args.subtitle && (article.subtitle = args.subtitle)
 
-                    args.version && (article.version = args.version) 
-                    args.objectives && (article.objectives = args.objectives.split(',')) 
-                    args.encoding && (article.encoding = args.encoding) 
-                    args.time && (article.time = args.time) 
+                    args.version && (article.version = args.version)
+                    args.objectives && (article.objectives = args.objectives.split(','))
+                    args.encoding && (article.encoding = args.encoding)
+                    args.time && (article.time = args.time)
                     args.requirements && (article.requirements = args.requirements.split(','))
-                    args.difficulty && (article.difficulty = args.difficulty) 
-                    args.introduction && (article.introduction = args.introduction) 
+                    args.difficulty && (article.difficulty = args.difficulty)
+                    args.introduction && (article.introduction = args.introduction)
 
-                    args.parts && (article.parts = args.parts) 
+                    args.parts && (article.parts = args.parts)
 
                     console.log(article)
                     return article;
@@ -108,6 +141,15 @@ export const RESOLVER = {
     },
     Subscription: {
 
+    },
+
+    Article: {
+        parts(root, args, context, info) {
+            return parts.filter(part => part.articleId === root.id)
+
+        }
+
+        
     }
 
 

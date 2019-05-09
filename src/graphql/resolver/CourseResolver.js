@@ -1,5 +1,5 @@
 import {
-    courses, COURSE_SUBSCRIPTION_TOPIC
+    courses, COURSE_SUBSCRIPTION_TOPIC, modules
 } from "../Resolvers";
 import {
     mongoObjectId
@@ -84,6 +84,8 @@ export const RESOLVER = {
             courses.map(course => {
                 if (course.id === args.id) {
 
+                
+
 
                       args.title && ( title = args.title)
 
@@ -112,6 +114,14 @@ export const RESOLVER = {
     },
     Subscription: {
 
+    },
+
+    Course : {
+
+        modules(root, args, context, info) {
+            return modules.filter(module => module.courseId === root.id)
+
+        }
     }
 
 

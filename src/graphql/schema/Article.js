@@ -38,7 +38,8 @@ extend type Query {
         time:Int!,
         requirements:String!, #to split
         difficulty:String!, 
-        introduction:String!): Article!
+        introduction:String!
+        moduleId: ID!): Article!
 
     updateArticle(id: String!,
         title:String,
@@ -49,7 +50,8 @@ extend type Query {
         time:Int,
         requirements:String, #to split
         difficulty:String, 
-        introduction:String): Article!
+        introduction:String
+        moduleId: ID!): Article!
 
 
     popArticle(title: String!, id: ID!): ID!

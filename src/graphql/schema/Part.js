@@ -18,7 +18,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    pushPart(content: String!, title: String!): Part
+    pushPart(content: String!, title: String!, articleId: ID!): Part
     updatePart(id:String!,content: String, title: String): Part
     popPart(title: String!, id:ID!): ID
 

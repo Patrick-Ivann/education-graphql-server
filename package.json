@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon ./src/index.js --exec babel-node --presets babel-preset-env",
+    "dev": "nodemon ./src/index.js --exec babel-node ",
     "build": "babel -d ./build ./src -s",
     "prebuild": "rm -rf ./build",
     "start": " node ./build/index.js",

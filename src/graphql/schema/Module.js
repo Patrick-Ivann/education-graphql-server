@@ -26,7 +26,8 @@ extend type Mutation {
         introduction:String!
         #chapters:String!
         objectives:String!
-        requirements:String!): Module
+        requirements:String!,
+        courseId: ID!): Module
         
         
         updateModule(id: String!
@@ -35,7 +36,8 @@ extend type Mutation {
             introduction:String
             chapters:String
             objectives:String
-            requirements:String): Module
+            requirements:String
+            courseId: ID!): Module
             
         
         
