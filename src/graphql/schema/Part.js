@@ -8,6 +8,7 @@ type Part {
     id :ID!
     title: String! #sommaire 
     content: String! #contenu de l'éditeur
+    createAt : String!
 }
 
 

@@ -11,6 +11,7 @@ type Image {
     filename: String!
     mimetype: String!
     encoding: String!
+    createdAt : String!
 }
 
 

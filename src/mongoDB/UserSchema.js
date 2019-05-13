@@ -83,4 +83,5 @@ UserSchema.methods.checkPasswordEquals = function (password) {
 
 
 
-module.exports = user = mongoose.model('user', UserSchema);
+const user = mongoose.model('user', UserSchema);
+export default user;

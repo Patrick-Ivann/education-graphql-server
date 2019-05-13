@@ -4,7 +4,9 @@ import {
 import {
     mongoObjectId
 } from "../../utils";
-import { PubSub } from "graphql-subscriptions";
+import {
+    PubSub
+} from "graphql-subscriptions";
 
 
 
@@ -14,19 +16,107 @@ const pubsub = new PubSub();
 
 /**
  * !GOOD RESOLVER
- * TODO PUT MONGODB resolvers
  */
 
- export let id = mongoObjectId()
+export let id = mongoObjectId()
 export let parts = [
 
     {
-        id : mongoObjectId(),
-        title : "titre téco",
-        content : "content",
-        articleId : id
+        id: mongoObjectId(),
+        title: "titre téco",
+        content: "content",
+        articleId: id
     }
 ]
+
+
+export const RESOLVERMONGO = {
+
+    Query: {
+
+        parts: () => {
+            return Part.find({})
+        },
+        part: (root, args) => {
+
+            if (!mongoose.Types.ObjectId.isValid(args.id)) {
+                throw new UserInputError(`${args.id} cette ID n'est pas valide. `)
+            }
+
+            return Part.findById(args.id)
+        }
+
+    },
+
+
+    Mutation: {
+
+
+        pushPart: (root, args) => {
+
+
+
+            const newPart = new Part({
+                id: mongoObjectId(),
+                title: args.title,
+                content: args.content,
+                articleId: args.articleId
+            })
+
+            newPart.save((err, result) => {
+
+                if (err) {
+                    console.log('---part save failed')
+                }
+
+                console.log("++++part saved successfully")
+                console.log(result)
+
+                return result
+            })
+        },
+        popPart: (root, args) => {
+
+            Part.findByTitle(args.title, () => {
+                Part.findByIdAndDelete(args.id, (err, result) => {
+                    if (err) {
+                        console.error(err)
+                    }
+
+                    return args.id
+                })
+            })
+        },
+
+        updatePart: (root, args) => {
+            var part = {}
+
+            args.title && (part.title = args.title)
+
+            args.content && (part.content = args.content)
+
+            Part.findByIdAndUpdate(args.id, {
+                $set: {
+                    part
+                }
+            }, {
+                new: true
+            }).then((result) => {
+                return result
+            }).catch((err) => {
+                console.error(err)
+            });
+        }
+    },
+
+    Subscription: {
+
+    },
+
+
+
+
+}
 
 
 export const RESOLVERS = {
@@ -57,7 +147,7 @@ export const RESOLVERS = {
                 id: mongoObjectId(),
                 title: args.title,
                 content: args.content,
-                articleId : args.articleId
+                articleId: args.articleId
             };
             parts.push(newPart);
 
@@ -77,9 +167,9 @@ export const RESOLVERS = {
                 if (part.id === args.id) {
 
 
-                    args.title && (part.title = args.title) 
+                    args.title && (part.title = args.title)
 
-                    args.content && (part.content = args.content) 
+                    args.content && (part.content = args.content)
 
 
 
