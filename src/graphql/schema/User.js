@@ -23,7 +23,7 @@ type Token {
 extend type Query {
     users: [User!]
     user(id:ID): User
-    me: User
+    himself: User
    # deleteUser(password: String!, id:ID!): ID
 }
 
@@ -31,15 +31,30 @@ extend type Query {
 
 
 popUser(password: String!, id:ID!): ID
-    signUp(
-        username :String!
-        mail: String!
-        firstname :String!
-        lastname: String!
-        password: String!
-      ): Token!
+    #signUp(
+       # username :String!
+       # mail: String!
+       # firstname :String!
+       # lastname: String!
+       # password: String!
+      #): Token
 
-      signIn(mail: String!, password: String!): Token!
+     # signIn(mail: String!, password: String!): Token
+
+     signUp(
+         username :String!
+         mail: String!
+         firstname :String!
+         lastname: String!
+         password: String!
+       ): User
+ 
+       signIn(mail: String!, password: String!): User
+
+      signOut: Boolean
+
+
+
 
 
      pushUser(username :String!

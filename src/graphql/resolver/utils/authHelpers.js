@@ -1,7 +1,25 @@
 import {
     AuthenticationError
 } from "apollo-server-core";
+
+import User from "../../../mongoDB/UserSchema";
+
 import jwt from 'jsonwebtoken';
+
+
+export const checkAuthenticated = req => {
+    const message = "Il faut se connecter. "
+    if (!req.session.userId) {
+        throw new AuthenticationError(message) 
+    }
+}
+
+export const checkUnAuthenticated = req => {
+    const message = "Il faut se deconnecter. "
+    if (req.session.userId) {
+        throw new AuthenticationError(message) 
+    }
+}
 
 export const trySignUp = async (mail, password) => {
 
@@ -18,7 +36,11 @@ export const trySignUp = async (mail, password) => {
 
     if(!await user.checkPasswordEquals(password)){
         throw new AuthenticationError(message)
-}}
+
+    }
+
+        return user
+}
 
 export const createToken = async (user, secret, expiresIn) => {
     const { id, mail, username,courses } = user;

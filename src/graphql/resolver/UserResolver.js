@@ -9,33 +9,61 @@ import {
     UserInputError
 } from "apollo-server-core";
 import Joi from "Joi";
-import { hash } from "bcryptjs";
 import {
+    hash
+} from "bcryptjs";
+
+import {
+    PubSub
+} from "graphql-subscriptions";
+import {
+    createToken,
+    checkAuthenticated,
+    trySignUp
+} from "./utils/authHelpers";
+import {
+    signIn,
     signUp
-} from "../schema/joi/ExportIndex";
-import { PubSub } from "graphql-subscriptions";
-import { createToken } from "./utils/authHelpers";
+} from "../schema/joi/user";
+import User from "../../mongoDB/UserSchema";
 
 /**
  * TODO ADD SUBSCRIPTION AND MONGOOSE SUPPOPRT
  * TODO ADD ENROLLEMENT TO COURSE SUPPPORT 
  */
 
- const pubSub = new PubSub();
+const pubSub = new PubSub();
 
 export const RESOLVER = {
 
 
     Query: {
 
+        himself: (root, args, context, info) => {
+
+            checkAuthenticated(context.req);
+
+            return User.findById(context.req.session.userId);
+
+        },
+
+/*         users: (root,args,context,info) =>{
+
+            checkAuthenticated(context.req)
+
+            return User.find({})
+        }, */
+
         users: () => users,
-        user: (root, args) => {
+        user: (root, args, context, info) => {
 
             // if (!mongoose.Types.ObjectId.isValid(args.id)) {
             //     throw new UserInputError(`${args.id} cette ID n'est pas valide. `)
             // }
 
             // return User.findById(args.id)
+
+            checkAuthenticated(context.req)
 
             users.find((element) => {
                 return element.id = args.id;
@@ -69,15 +97,64 @@ export const RESOLVER = {
           },*/
 
 
+
+          signOut : async (root,args,context,info) =>{
+
+            checkAuthenticated(context.req)
+            context.req.session.destroy(err=>{
+                if (err) {
+                    throw new Error("impossible de vous deconnecter")
+                }
+                context.res.clearCookie(process.env.SESSION_NAME)
+                
+                return true 
+            })
+          },
+
+
+        signUp: async (root, args, {req}, info) => {
+
+            console.log(args)
+
+            await Joi.validate(args, signUp, {
+                abortEarly: false
+            })
+
+            const user = await User.create(args)
         
+            req.session.userId = user.id
 
-        pushUser: async (root, args, {secret}) => {
+            return  user
+        },
 
-            console.log("object")
+        signIn: async (root, args, {req} , info) => {
+
+            if (req.session.UserId) {
+                return User.findById(req.session.userId)
+            }
+
+            await Joi.validate(args, signIn, {
+                abortEarly: false
+            });
+
+            const user = await trySignUp(args.mail, args.password)
+
+            req.session.userId = user.id
+
+            return user
+
+        },
+
+
+
+        pushUser: async (root, args, {
+            secret
+        }) => {
+
             Joi.validate(args, signUp)
 
 
-            users.map((user)=>{
+            users.map((user) => {
                 if (user.mail === args.mail) {
                     throw new UserInputError("Ce mail est déjà associé à un compte")
                 }
@@ -90,7 +167,7 @@ export const RESOLVER = {
                 firstname: args.firstname,
                 lastname: args.lastname,
                 password: await hash(args.password, 12),
-                rank : 1,
+                rank: 1,
                 createAt: Date.now().toString()
 
 
@@ -104,7 +181,7 @@ export const RESOLVER = {
                 newUser,
             });
 
-            return createToken(newUser,secret,"2h");
+            return createToken(newUser, secret, "2h");
         },
 
 

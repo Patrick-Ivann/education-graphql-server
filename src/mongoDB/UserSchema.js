@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-import { hash } from "bcryptjs";
+import { hash,compare } from "bcryptjs";
 
 
 // Define schema
@@ -83,5 +83,5 @@ UserSchema.methods.checkPasswordEquals = function (password) {
 
 
 
-const user = mongoose.model('user', UserSchema);
-export default user;
+const User = mongoose.model('user', UserSchema);
+export default User;
