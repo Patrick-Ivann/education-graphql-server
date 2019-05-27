@@ -19,7 +19,8 @@ import {
 import {
     createToken,
     checkAuthenticated,
-    trySignUp
+    trySignUp,
+    authenticated
 } from "./utils/authHelpers";
 import {
     signIn,
@@ -39,13 +40,13 @@ export const RESOLVER = {
 
     Query: {
 
-        himself: (root, args, context, info) => {
+        himself: authenticated((root, args, context, info) => {
 
             checkAuthenticated(context.req);
 
             return User.findById(context.req.session.userId);
 
-        },
+        }),
 
 /*         users: (root,args,context,info) =>{
 
@@ -55,7 +56,7 @@ export const RESOLVER = {
         }, */
 
         users: () => users,
-        user: (root, args, context, info) => {
+        user: authenticated((root, args, context, info) => {
 
             // if (!mongoose.Types.ObjectId.isValid(args.id)) {
             //     throw new UserInputError(`${args.id} cette ID n'est pas valide. `)
@@ -68,7 +69,7 @@ export const RESOLVER = {
             users.find((element) => {
                 return element.id = args.id;
             })
-        }
+        })
 
     },
     Mutation: {
@@ -98,7 +99,7 @@ export const RESOLVER = {
 
 
 
-          signOut : async (root,args,context,info) =>{
+          signOut :  authenticated(async(root,args,context,info) =>{
 
             checkAuthenticated(context.req)
             context.req.session.destroy(err=>{
@@ -109,7 +110,7 @@ export const RESOLVER = {
                 
                 return true 
             })
-          },
+          }),
 
 
         signUp: async (root, args, {req}, info) => {

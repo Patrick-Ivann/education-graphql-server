@@ -32,12 +32,30 @@ const APOLLOSERVER = new ApolloServer({
 
     typeDefs: [TYPEDEFS, Article, Image, User, Module, Course, Part],
     resolvers: RESOLVERS,
-    context: async ({req, res}) => ({
-        secret: process.env.JWT_SECRET,
-         req,
-         res
+    context: async ({
+        req,
+        res
+    }) => {
+        let authToken = null;
+        let currentUser = null;
 
-    }),
+        try {
+            authToken = req.session.userId;
+
+            if (authToken) {
+                currentUser = await tradeTokenForUser(authToken);
+            }
+        } catch (e) {
+            console.warn(`Unable to authenticate using auth token: ${authToken}`);
+        }
+
+        return {
+            secret: process.env.JWT_SECRET,
+            req,
+            res
+
+        }
+    },
     subscriptions: {
         path: '/subscription',
         onConnect: () => console.log('Connected to websocket'),

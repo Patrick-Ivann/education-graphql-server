@@ -7,6 +7,7 @@ if [ $TRAVIS_BRANCH == 'master' ] ; then
   npm run build
   rsync -rq --delete --rsync-path="mkdir -p serverEducation && rsync" \
   $TRAVIS_BUILD_DIR travis@104.248.167.41:serverEducation
+  pm2 start ecosystem.config.js--only GRAPHQL_GRIFFOULEDUCATION
 else
   echo "Not deploying, since this branch isn't master."
 fi
