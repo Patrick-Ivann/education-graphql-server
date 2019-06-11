@@ -2,6 +2,8 @@ import { gql } from "apollo-server-core";
 
 export const typeDef = gql`
 
+directive @isAuthenticated  on QUERY | FIELD | FIELD_DEFINITION
+
 
 type User {
     id: ID!
@@ -24,6 +26,7 @@ extend type Query {
     users: [User!]
     user(id:ID): User
     himself: User
+    isAuthenticated: String @isAuthenticated
    # deleteUser(password: String!, id:ID!): ID
 }
 

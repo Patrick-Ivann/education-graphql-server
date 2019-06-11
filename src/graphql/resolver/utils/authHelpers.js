@@ -50,9 +50,9 @@ export const createToken = async (user, secret, expiresIn) => {
       });
   };
 
-export const  tradeTokenForUser = async () =>{
+export const  tradeTokenForUser = async (authToken) =>{
 
-    return User.findById(context.req.session.userId);
+    return User.findById(authToken);
 
 }
 
@@ -60,7 +60,8 @@ export const  tradeTokenForUser = async () =>{
 
 
 export const authenticated = next => (root, args, context, info) => {
-    if (!context.currentUser) {
+    Object.keys(context)
+    if (!context.req.session.userId) {
         throw new Error(`Unauthenticated!`);
     }
   

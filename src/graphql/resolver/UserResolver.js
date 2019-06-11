@@ -6,7 +6,7 @@ import {
     USER_SUBSCRIPTION_TOPIC
 } from "../Resolvers";
 import {
-    UserInputError
+    UserInputError, ApolloError
 } from "apollo-server-core";
 import Joi from "Joi";
 import {
@@ -20,7 +20,8 @@ import {
     createToken,
     checkAuthenticated,
     trySignUp,
-    authenticated
+    authenticated,
+    checkUnAuthenticated
 } from "./utils/authHelpers";
 import {
     signIn,
@@ -40,6 +41,16 @@ export const RESOLVER = {
 
     Query: {
 
+        date: (root, args, context, info) => {
+            checkAuthenticated(context.req);
+
+            return Date.now().toString()
+        },
+
+
+        isAuthenticated: (root, args, context) => `Authorized | CurentUserId ${context.req.session.userId}!`,
+
+
         himself: authenticated((root, args, context, info) => {
 
             checkAuthenticated(context.req);
@@ -48,12 +59,12 @@ export const RESOLVER = {
 
         }),
 
-/*         users: (root,args,context,info) =>{
+        /*         users: (root,args,context,info) =>{
 
-            checkAuthenticated(context.req)
+                    checkAuthenticated(context.req)
 
-            return User.find({})
-        }, */
+                    return User.find({})
+                }, */
 
         users: () => users,
         user: authenticated((root, args, context, info) => {
@@ -99,38 +110,43 @@ export const RESOLVER = {
 
 
 
-          signOut :  authenticated(async(root,args,context,info) =>{
+        signOut: authenticated(async (root, args, context, info) => {
 
             checkAuthenticated(context.req)
-            context.req.session.destroy(err=>{
+            context.req.session.destroy(err => {
                 if (err) {
                     throw new Error("impossible de vous deconnecter")
                 }
-                context.res.clearCookie(process.env.SESSION_NAME)
-                
-                return true 
+                //context.res.clearCookie(process.env.SESSION_NAME)
+
+                return true
             })
-          }),
+        }),
 
 
-        signUp: async (root, args, {req}, info) => {
+        signUp: async (root, args, {
+            req
+        }, info) => {
 
-            console.log(args)
 
             await Joi.validate(args, signUp, {
                 abortEarly: false
             })
 
             const user = await User.create(args)
-        
+
             req.session.userId = user.id
 
-            return  user
+            return user
         },
 
-        signIn: async (root, args, {req} , info) => {
+        signIn: async (root, args, {
+            req
+        }, info) => {
 
             if (req.session.UserId) {
+                checkUnAuthenticated(req)
+                throw new AuthenticationError("ALREADY_CONNECTED")
                 return User.findById(req.session.userId)
             }
 

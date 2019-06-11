@@ -66,9 +66,18 @@ var _apolloServerExpress = require("apollo-server-express");
 
 var _schema = _interopRequireDefault(require("./graphql/schema.js"));
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+        default: obj
+    };
+}
 
 require('dotenv').config()
+
+
+var _CORS = require("./CORS.js");
+
+
 
 require('./mongoDB/config');
 
@@ -77,27 +86,52 @@ var PORT = process.env.PORT || 4000; // Connection.connectToMongo()
 
 var app = (0, _express.default)();
 
+
 var store = new RedisStore({
-    host : process.env.REDIS_STORE_HOST,
-    port : process.env.REDIS_STORE_PORT,
+    host: process.env.REDIS_STORE_HOST,
+    port: process.env.REDIS_STORE_PORT,
     pass: process.env.REDIS_STORE_PASSWORD
 })
 
+app.get('/', (req, res) => {
+    res.writeHead(200, {
+        Connection: 'close'
+    });
+    res.end(RESPONSE.MESSAGES.UP_RUNNING);
+});
+
+// Error handler
+const errorHandler = (err, req, res, next) => {
+    if (res.headersSent) {
+        return next(err);
+    }
+    const {
+        status
+    } = err;
+    res.status(status).json(err);
+};
+
+app.use(errorHandler);
+
+app.use((0, _CORS.corsWrapper)());
+
+// app.use(corsWrapper());
+
 app.use(session({
     store,
-    name : process.env.SESSION_NAME,
-    secret : process.env.SESSION_SECRET,
+    name: process.env.SESSION_NAME,
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie :{
-        maxAge : 1000 * 60 * 60 * 4,
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 4,
         sameSite: true,
-        
+
     }
 }));
 
 _schema.default.applyMiddleware({
-  app: app
+    app: app
 });
 
 var httpServer = (0, _http.createServer)(app);
@@ -106,8 +140,8 @@ _schema.default.installSubscriptionHandlers(httpServer);
 
 app.use('/fdt', _express.default.static(__dirname + '/images'));
 httpServer.listen({
-  port: PORT
+    port: PORT
 }, function () {
-  console.log("server ready at http://localhost:".concat(PORT).concat(_schema.default.graphqlPath));
-  console.log("Subscriptions ready at ws://localhost:".concat(PORT).concat(_schema.default.subscriptionsPath));
+    console.log("server ready at http://localhost:".concat(PORT).concat(_schema.default.graphqlPath));
+    console.log("Subscriptions ready at ws://localhost:".concat(PORT).concat(_schema.default.subscriptionsPath));
 });

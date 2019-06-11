@@ -9,12 +9,16 @@ import {
 // GraphQL: TypeDefs
 const TYPEDEFSLINKSCHEMA = gql `
 
+#directive @isAuthenticated on FIELD | FIELD_DEFINITION
+directive @hasRole(role: String) on FIELD | FIELD_DEFINITION
+
 
 
 
 type Query {
 
   _:Boolean
+  date : String
 }
 
 

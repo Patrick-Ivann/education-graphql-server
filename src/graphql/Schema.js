@@ -23,40 +23,71 @@ import {
 import {
     typeDef as Part
 } from './schema/Part'
+import {
+    tradeTokenForUser
+} from './resolver/utils/authHelpers.js';
+import {
+    corsWrapper
+} from '../CORS.js';
+import {
+    formatError
+} from './resolver/utils/formatError.js';
+
+import {
+    directiveResolvers, isAuthenticated
+} from './directives/directivesResolver';
 
 // GraphQL: Schema
 
 
 
 const APOLLOSERVER = new ApolloServer({
+    cors: corsWrapper(),
 
     typeDefs: [TYPEDEFS, Article, Image, User, Module, Course, Part],
     resolvers: RESOLVERS,
-    context: async ({
+    /* context: async ({
         req,
         res
     }) => {
         let authToken = null;
         let currentUser = null;
 
+
+        if (!req || !req.session.userId) {
+            throw new Error(`Unauthorized`);
+        }
+
         try {
+            console.log(req.session.userId);
             authToken = req.session.userId;
 
             if (authToken) {
                 currentUser = await tradeTokenForUser(authToken);
+
+                console.log(currentUser)
             }
         } catch (e) {
             console.warn(`Unable to authenticate using auth token: ${authToken}`);
-        }
+        } */
+
+    context: async ({
+        req,
+        res
+    }) => {
 
         return {
             secret: process.env.JWT_SECRET,
             req,
-            res
+            res,
 
         }
     },
-    subscriptions: {
+    schemaDirectives : {
+        isAuthenticated : isAuthenticated
+        
+    },
+        subscriptions: {
         path: '/subscription',
         onConnect: () => console.log('Connected to websocket'),
     },
@@ -66,6 +97,7 @@ const APOLLOSERVER = new ApolloServer({
             'editor.theme': 'dark'
         }
     },
+    formatError: err => formatError(err),
     debug: true,
     tracing: true,
 

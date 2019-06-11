@@ -48,7 +48,18 @@ import {
     RESOLVER as user
 } from "./resolver/UserResolver";
 
-const RESOLVERS =  [article, image, part, module, course, user]
+
+
+// const authResolvers = mapValues(mergeResolvers(resolvers), (resolver, type) =>
+//   mapValues(resolver, (item) => {
+//     if (type !== 'Mutation' && type !== 'Query') return item; // skip type resolvers
+//     const { name = '' } = item;
+//     const isPrivate = isPrivateOperation(name);
+//     if (isPrivate) return authenticated(item);
+   
+//     return item;
+//   }));
+const   RESOLVERS =  [article, image, part, module, course, user]
 
 
 /* const RESOLVERS = {

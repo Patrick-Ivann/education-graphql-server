@@ -39,7 +39,8 @@
     "lodash": "^4.17.11",
     "mongodb": "^3.2.2",
     "mongoose": "^5.5.8",
-    "subscriptions-transport-ws": "^0.9.16"
+    "subscriptions-transport-ws": "^0.9.16",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0-rc.1",
