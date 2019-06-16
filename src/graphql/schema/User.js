@@ -25,7 +25,7 @@ type Token {
 extend type Query {
     users: [User!]
     user(id:ID): User
-    himself: User
+    himself: User @isAuthenticated
     isAuthenticated: String @isAuthenticated
    # deleteUser(password: String!, id:ID!): ID
 }

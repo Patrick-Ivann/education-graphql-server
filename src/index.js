@@ -93,6 +93,8 @@ var store = new RedisStore({
     pass: process.env.REDIS_STORE_PASSWORD
 })
 
+
+
 app.get('/', (req, res) => {
     res.writeHead(200, {
         Connection: 'close'
@@ -113,6 +115,8 @@ const errorHandler = (err, req, res, next) => {
 
 app.use(errorHandler);
 
+
+
 app.use((0, _CORS.corsWrapper)());
 
 // app.use(corsWrapper());
@@ -124,7 +128,8 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        maxAge: 1000 * 60 * 60 * 4,
+        httpOnly:true,
+        maxAge: 1200000,
         sameSite: true,
 
     }

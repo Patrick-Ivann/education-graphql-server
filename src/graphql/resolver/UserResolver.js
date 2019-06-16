@@ -51,13 +51,14 @@ export const RESOLVER = {
         isAuthenticated: (root, args, context) => `Authorized | CurentUserId ${context.req.session.userId}!`,
 
 
-        himself: authenticated((root, args, context, info) => {
+        himself: (root, args, context, info) => {
 
-            checkAuthenticated(context.req);
+
+            console.log("himself")
 
             return User.findById(context.req.session.userId);
 
-        }),
+        },
 
         /*         users: (root,args,context,info) =>{
 
@@ -110,17 +111,21 @@ export const RESOLVER = {
 
 
 
-        signOut: authenticated(async (root, args, context, info) => {
+        signOut: authenticated((root, args, context, info) => {
 
-            checkAuthenticated(context.req)
+            console.log(context.req.session.userId)
+            console.log("dddzzz")
+
             context.req.session.destroy(err => {
                 if (err) {
                     throw new Error("impossible de vous deconnecter")
                 }
-                //context.res.clearCookie(process.env.SESSION_NAME)
+                // context.res.clearCookie(process.env.SESSION_NAME)
 
                 return true
             })
+
+            return true
         }),
 
 

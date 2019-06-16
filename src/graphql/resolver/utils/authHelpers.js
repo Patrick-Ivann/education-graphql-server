@@ -60,9 +60,9 @@ export const  tradeTokenForUser = async (authToken) =>{
 
 
 export const authenticated = next => (root, args, context, info) => {
-    Object.keys(context)
-    if (!context.req.session.userId) {
-        throw new Error(`Unauthenticated!`);
+    if (!context || !context.req || !context.req.session.userId) {
+        console.log("middleware")
+        throw new Error(`UNAUTHORIZED`);
     }
   
     return next(root, args, context, info);

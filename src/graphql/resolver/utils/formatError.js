@@ -27,7 +27,7 @@ const e401s = [{
         DOES_NOT_EXIST: 'Il n\'y a pas d\'utilisateur associé'
     },
     {
-        UNAUTHORIZED : 'Unauthorized!'
+        UNAUTHORIZED : 'UNAUTHORIZED'
     },
 
  {

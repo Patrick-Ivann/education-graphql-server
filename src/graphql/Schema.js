@@ -101,6 +101,19 @@ const APOLLOSERVER = new ApolloServer({
     debug: true,
     tracing: true,
 
+    plugins: [
+        {
+          requestDidStart({ request }) {
+            //console.log(request.http);
+            return {
+              willSendResponse({ response }) {
+               // console.log(response);
+              },
+            };
+          },
+        },
+      ],
+
 });
 // Exports
 export default APOLLOSERVER;

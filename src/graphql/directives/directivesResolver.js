@@ -25,6 +25,9 @@ import { SchemaDirectiveVisitor } from 'graphql-tools';
       const [,,context] = args
       const result = await resolve.apply(this, args);
 
+      console.log("directiveResolver")
+      console.log(context.req.session)
+      console.log(context.req.session.userId)
 
 
 
@@ -33,7 +36,7 @@ import { SchemaDirectiveVisitor } from 'graphql-tools';
       let  currentUser = null 
 
       if (!context || !context.req || !context.req.session.userId) {
-        throw new Error(`Unauthorized`);
+        throw new Error(`UNAUTHORIZED`);
       }
   
       const authToken = context.req.session.userId;
@@ -66,7 +69,7 @@ export const directiveResolvers = {
     console.log("object")
 
     if (!context || !context.req || !context.req.session.userId) {
-      throw new Error(`Unauthorized`);
+      throw new Error(`UNAUTHORIZED`);
     }
 
     authToken = req.session.userId;
