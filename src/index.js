@@ -94,6 +94,40 @@ var store = new RedisStore({
 })
 
 
+const tokenRefresher = async (req, res, next) => {
+    const authorization = req.headers.authorization
+
+    if (authorization) {
+        const token = authorization.split("Bearer")[1].trim()
+        try {
+            var user = jwt.verify(authToken.trim(), process.env.JWT_secret, {
+                algorithms: "HS384"
+            });
+        } catch (error) {
+
+            if (error.name === 'TokenExpiredError') {
+                const payload = jwt.verify(token.trim(), process.env.JWT_secret, {
+                    algorithms: "HS384",
+                    ignoreExpiration: true
+                });
+
+                const refreshToken = req.headers.refreshAuthorization.split('Bearer')[1].trim()
+                var [legitToken, newToken] = await generateTokens(payload);
+                if (legitToken && newToken) {
+                    res.set("Access-Control-Expose-Headers", "x-token", "x-refresh-token")
+                    res.set("x-token", legitToken)
+                    res.set("x-refresh-token", newToken)
+                }
+            }
+        }
+    }
+
+    next()
+}
+
+
+
+app.use(tokenRefresher);
 
 app.get('/', (req, res) => {
     res.writeHead(200, {
@@ -121,7 +155,7 @@ app.use((0, _CORS.corsWrapper)());
 
 // app.use(corsWrapper());
 
-app.use(session({
+/* app.use(session({
     store,
     name: process.env.SESSION_NAME,
     secret: process.env.SESSION_SECRET,
@@ -133,7 +167,7 @@ app.use(session({
         sameSite: true,
 
     }
-}));
+})); */
 
 _schema.default.applyMiddleware({
     app: app

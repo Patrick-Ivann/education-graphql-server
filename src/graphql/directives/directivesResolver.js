@@ -1,63 +1,73 @@
-
-
-
-
 import {
   AuthenticationError
 } from 'apollo-server-core';
-import { tradeTokenForUser } from '../resolver/utils/authHelpers';
-import { defaultFieldResolver } from "graphql"
+import {
+  tradeTokenForUser, tradeTokenForUserNew
+} from '../resolver/utils/authHelpers';
+import {
+  defaultFieldResolver
+} from "graphql"
 
-import { SchemaDirectiveVisitor } from 'graphql-tools';
+import {
+  SchemaDirectiveVisitor
+} from 'graphql-tools';
 
 
- export class isAuthenticated extends SchemaDirectiveVisitor {
+export class isAuthenticated extends SchemaDirectiveVisitor {
 
 
 
   visitFieldDefinition(field) {
 
-    const { resolve = defaultFieldResolver } = field;
+    const {
+      resolve = defaultFieldResolver
+    } = field;
 
     field.resolve = async function (...args) {
+ 
 
-
-      const [,,context] = args
+      const [, , context] = args
       const result = await resolve.apply(this, args);
 
-      console.log("directiveResolver")
-      console.log(context.req.session)
-      console.log(context.req.session.userId)
+
+      console.log(resolve.apply(this, args))
 
 
 
 
 
-      let  currentUser = null 
+
+      let currentUser = null
+
+/* 
 
       if (!context || !context.req || !context.req.session.userId) {
         throw new Error(`UNAUTHORIZED`);
       }
-  
-      const authToken = context.req.session.userId;
-  
-      if (authToken) {
-         currentUser = await tradeTokenForUser(authToken);
-  
+ */
+
+      if (!context || !context.req || !context.req.headers.authorization) {
+        throw new Error(`UNAUTHORIZED`);
       }
-      if (currentUser) {
+      const authTokenHeader = context.req.headers.authorization;
+      const authToken = authTokenHeader.split("Bearer")[1];
 
 
+      if (authToken) {
+        currentUser = await tradeTokenForUserNew(authToken.trim(),context.secret);
+
+        if (currentUser) {
+    
+          return result;
   
-        return result;
-
+        }
       }
 
 
 
     }
   }
-} 
+}
 
 
 

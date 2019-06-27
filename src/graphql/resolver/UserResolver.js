@@ -6,12 +6,16 @@ import {
     USER_SUBSCRIPTION_TOPIC
 } from "../Resolvers";
 import {
-    UserInputError, ApolloError
+    UserInputError,
+    ApolloError,
+    AuthenticationError
 } from "apollo-server-core";
 import Joi from "Joi";
 import {
     hash
 } from "bcryptjs";
+
+import jwt from "jsonwebtoken";
 
 import {
     PubSub
@@ -21,7 +25,11 @@ import {
     checkAuthenticated,
     trySignUp,
     authenticated,
-    checkUnAuthenticated
+    checkUnAuthenticated,
+    checkUnAuthenticatedNew,
+    authenticatedNew,
+    createRefreshedToken,
+    generateTokens
 } from "./utils/authHelpers";
 import {
     signIn,
@@ -48,21 +56,38 @@ export const RESOLVER = {
         },
 
 
-        isAuthenticated: (root, args, context) => `Authorized | CurentUserId ${context.req.session.userId}!`,
+        isAuthenticated: (root, args, context) => `Authorized!`,
 
 
-        himself: (root, args, context, info) => {
+        himself: async (root, args, context, info) => {
 
 
-            console.log("himself")
 
-            return User.findById(context.req.session.userId);
+
+
+            const authTokenHeader = context.req.headers.authorization;
+            const authToken = authTokenHeader.split("Bearer")[1];
+
+            const secret = context.secret
+
+            try {
+                var user = jwt.verify(authToken.trim(), secret, {
+                    algorithms: "HS384"
+                });
+                return User.findById(user.id);
+            } catch (error) {
+                throw new AuthenticationError('UNAUTHORIZED');
+
+            }
+
+
+
 
         },
 
         /*         users: (root,args,context,info) =>{
-
-                    checkAuthenticated(context.req)
+            
+            checkAuthenticated(context.req)
 
                     return User.find({})
                 }, */
@@ -109,21 +134,39 @@ export const RESOLVER = {
             return { token: createToken(user, secret, '30m') };
           },*/
 
+        refreshToken: (root, args, ctx, info) => {
 
 
-        signOut: authenticated((root, args, context, info) => {
+            const authTokenHeader = context.req.headers.authorization;
+            const authToken = authTokenHeader.split("Bearer")[1];
 
-            console.log(context.req.session.userId)
-            console.log("dddzzz")
+            const secret = context.secret
 
-            context.req.session.destroy(err => {
-                if (err) {
-                    throw new Error("impossible de vous deconnecter")
-                }
-                // context.res.clearCookie(process.env.SESSION_NAME)
+            try {
+                var user = jwt.verify(authToken.trim(), secret, {
+                    algorithms: "HS384"
+                });
+                return createRefreshedToken(user.id,ctx.secret,"30min")
+            } catch (error) {
+                throw new AuthenticationError('UNAUTHORIZED');
 
-                return true
-            })
+            }
+        },
+
+
+        signOut: authenticatedNew((root, args, context, info) => {
+
+
+
+            /* 
+                        context.req.session.destroy(err => {
+                            if (err) {
+                                throw new Error("impossible de vous deconnecter")
+                            }
+                            // context.res.clearCookie(process.env.SESSION_NAME)
+
+                            return true
+                        }) */
 
             return true
         }),
@@ -146,13 +189,15 @@ export const RESOLVER = {
         },
 
         signIn: async (root, args, {
-            req
+            req,res,
+            secret
         }, info) => {
 
-            if (req.session.UserId) {
-                checkUnAuthenticated(req)
-                throw new AuthenticationError("ALREADY_CONNECTED")
-                return User.findById(req.session.userId)
+
+            if (req.headers.authorization) {
+                checkUnAuthenticatedNew(req)
+                //                throw new AuthenticationError("ALREADY_CONNECTED")
+                //return User.findById(req.session.userId)
             }
 
             await Joi.validate(args, signIn, {
@@ -161,7 +206,27 @@ export const RESOLVER = {
 
             const user = await trySignUp(args.mail, args.password)
 
-            req.session.userId = user.id
+
+
+            // req.session.userId = user.id
+
+            var tok = await createToken(user, secret, '30m');
+
+            var [legitToken, refreshToken] = await generateTokens(user);
+
+
+            res.set("Access-Control-Expose-Headers", "x-token", "x-refresh-token")
+            res.set("x-token", legitToken)
+            res.set("x-refresh-token", refreshToken)
+
+
+            return {
+                ...user._doc,
+                id: user._id,
+                token: legitToken,
+                refreshToken : refreshToken
+            };
+
 
             return user
 
