@@ -18,6 +18,7 @@ import {
 } from "./PartResolver";
 
 import Article from '../../mongoDB/ArticleSchema'
+import Part from '../../mongoDB/PartSchema'
 
 
 const pubsub = new PubSub();
@@ -90,18 +91,13 @@ export const RESOLVERMONGO = {
                 introduction: args.introduction,
 
             })
+            let pushedArticle = await newArticles.save()
 
-            newArticles.save((err, result) => {
-                if (err) {
-                    console.log("---article save failed " + err)
-                }
-                console.log("+++article saved successfully ")
-                console.log(result)
-
-                return result
-
-
-            })
+            if (!pushArticle) {
+                console.log("---article save failed ")
+                throw Error("---article save failed ")
+            }
+            return pushedArticle
 
         },
         popArticle: (root, args) => {
@@ -158,7 +154,11 @@ export const RESOLVERMONGO = {
     Article: {
         async parts(root, args, context, info) {
 
-            return await Part.findByArticleId(root.id) 
+            let id = root.id
+            return await Part.find({
+                articleId: id
+            })
+
 
         }
 

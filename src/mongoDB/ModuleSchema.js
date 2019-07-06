@@ -32,7 +32,8 @@ const moduleSchema = new Schema({
 		type: [
 			'String'
 		]
-	}
+	},
+	courseId :{type: "String"}
 }, {
     timestamps: true
 })
@@ -46,6 +47,13 @@ moduleSchema.statics.findByTitle = function (title, cb) {
         title: new RegExp(title, 'i')
     }, cb)
 }
+
+moduleSchema.statics.findByCourseId = function (id, cb) {
+    this.find({
+        moduleId: id
+    }, cb)
+}
+
 
 const module = mongoose.model('module', moduleSchema);
 

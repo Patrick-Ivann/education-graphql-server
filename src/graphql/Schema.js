@@ -94,13 +94,13 @@ const APOLLOSERVER = new ApolloServer({
     playground: {
         endpoint: `http://localhost:4000/graphql`,
         settings: {
-            'editor.theme': 'dark'
+            'editor.theme': 'dark'     
         }
     },
     formatError: err => formatError(err),
     debug: true,
     tracing: true,
-
+    
     plugins: [
         {
           requestDidStart({ request }) {

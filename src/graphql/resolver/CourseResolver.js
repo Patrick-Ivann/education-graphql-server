@@ -6,6 +6,13 @@ import {
 import {
     mongoObjectId
 } from "../../utils";
+import Joi from "Joi";
+import {
+    pushCourse
+} from "../schema/joi/ExportIndex";
+
+import Course from "../../mongoDB/CourseSchema";
+import Module from "../../mongoDB/ModuleSchema";
 
 
 import {
@@ -63,14 +70,16 @@ export const RESOLVERMONGO = {
             newCourse.save((err, result) => {
                 if (err) {
                     console.log("---course save failed " + err)
+                    throw new Error("---course save failed " + err)
                 }
                 console.log("+++course saved successfully ")
                 console.log(result)
 
-                return result
 
 
             })
+
+            return newCourse
 
         },
         popCourse: (root, args) => {
@@ -122,8 +131,20 @@ export const RESOLVERMONGO = {
 
     Course: {
 
-       async modules(root, args, context, info) {
-            return await Module.findByCourseId(root.id)
+        async modules(root, args, context, info) {
+
+            let id = root.id
+            return await Module.find({
+                courseId: id
+            })
+
+
+            const modules = await Module.findByCourseId(root.id)
+            if (!modules) {
+                throw Error("Pas de Module dans ce cours")
+            }
+            return modules
+
 
         }
     }

@@ -20,6 +20,8 @@ const ArticleSchema = new Schema({
         ref: 'Course'
     }],
 
+    "moduleId" : {type:"String"},
+
 
     "subtitle": {
         type: String,
@@ -67,7 +69,7 @@ ArticleSchema.statics.findByTitle = function (title, cb) {
     }, cb)
 }
 
-ArticleSchema.methods.findByModuleId = function (id, cb) {
+ArticleSchema.statics.findByModuleId = function (id, cb) {
     this.find({
         moduleId: id
     }, cb)

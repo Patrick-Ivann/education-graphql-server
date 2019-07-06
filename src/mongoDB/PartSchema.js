@@ -13,7 +13,7 @@ const PartSchema = new Schema({
         type: 'String'
     },
 
-
+    articleId :{type: 'String'} 
 
 }, {
     timestamps: true
@@ -21,7 +21,8 @@ const PartSchema = new Schema({
 
 
 
-PartSchema.methods.findByModuleId = function (id, cb) {
+PartSchema.statics.findByArticleId = function (id, cb) {
+    console.log(id)
     this.find({
         articleId: id
     }, cb)

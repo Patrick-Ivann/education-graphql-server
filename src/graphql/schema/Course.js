@@ -12,7 +12,8 @@ type Course { #pour le moment on en a qu'un on peut limiter pousser ça en dur d
     modules: [Module!]!
     objectives: [String!]
     requirements: [String!]
-}
+    createdAt: String!
+    updatedAt: String!}
 
 
 extend type Query {

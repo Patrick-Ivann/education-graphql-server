@@ -30,19 +30,19 @@ export const articles = [];
 // GraphQL: Resolvers
 
 import {
-    RESOLVER as article
+    RESOLVERMONGO as article
 } from "./resolver/ArticleResolver";
 import {
     RESOLVERS as image
 } from "./resolver/ImageResolver";
 import {
-    RESOLVERS as part
+    RESOLVERMONGO as part
 } from "./resolver/PartResolver";
 import {
-    RESOLVER as module
+    RESOLVERMONGO as module
 } from "./resolver/ModulesResolver";
 import {
-    RESOLVER as course
+    RESOLVERMONGO as course
 } from "./resolver/CourseResolver";
 import {
     RESOLVER as user

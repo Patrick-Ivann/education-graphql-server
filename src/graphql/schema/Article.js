@@ -18,7 +18,8 @@ type Article { #complété par 1000 text input ainsi qu'un petit textArea pour l
     difficulty: String!
     introduction : String!
     parts: [Part!]
-    createdAt : String!
+    createdAt: String!
+    updatedAt: String!
 
 }
 

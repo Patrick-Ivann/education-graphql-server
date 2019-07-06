@@ -47,7 +47,7 @@ CourseSchema.statics.findByTitle = function (title, cb) {
     }, cb)
 }
 
-ArticleSchema.methods.findByCourseId = function (id, cb) {
+CourseSchema.static.findByCourseId = function (id, cb) {
     this.find({
         courseId: id
     }, cb)

@@ -7,6 +7,7 @@ import {
 import {
     PubSub
 } from "graphql-subscriptions";
+import part from "../../mongoDB/PartSchema";
 
 
 
@@ -52,28 +53,25 @@ export const RESOLVERMONGO = {
     Mutation: {
 
 
-        pushPart: (root, args) => {
+        pushPart: async (root, args) => {
 
 
 
-            const newPart = new Part({
+            const newPart = new part({
                 id: mongoObjectId(),
                 title: args.title,
                 content: args.content,
                 articleId: args.articleId
             })
 
-            newPart.save((err, result) => {
+            let insertedPart = await newPart.save()
 
-                if (err) {
-                    console.log('---part save failed')
-                }
+            if (!insertedPart) {
+                console.log('---part save failed')
+                throw new Error('---part save failed')
+            }
+            return insertedPart
 
-                console.log("++++part saved successfully")
-                console.log(result)
-
-                return result
-            })
         },
         popPart: (root, args) => {
 

@@ -7,8 +7,10 @@ export const typeDef = gql`
 type Part {
     id :ID!
     title: String! #sommaire 
+    articleId: String!
     content: String! #contenu de l'éditeur
-    createAt : String!
+    createdAt: String!
+    updatedAt: String!
 }
 
 

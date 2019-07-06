@@ -7,6 +7,15 @@ import {
     mongoObjectId
 } from "../../utils";
 
+
+import Joi from "Joi";
+import {
+    pushModule
+} from "../schema/joi/ExportIndex";
+
+import Module from "../../mongoDB/ModuleSchema";
+import Article from "../../mongoDB/ArticleSchema";
+
 import {
     PubSub
 } from "graphql-subscriptions";
@@ -25,8 +34,7 @@ export const RESOLVERMONGO = {
 
     Query: {
 
-        modules: () => {
-
+        modules: async() => {
             return Module.find({});
         },
         module: (root, args) => {
@@ -62,6 +70,8 @@ export const RESOLVERMONGO = {
             newModule.save((err, result) => {
                 if (err) {
                     console.log("---module save failed " + err)
+                    throw new Error("---module save failed " + err)
+
                 }
                 console.log("+++module saved successfully ")
                 console.log(result)
@@ -70,6 +80,8 @@ export const RESOLVERMONGO = {
 
 
             })
+
+            return newModule
 
         },
         popModule: (root, args) => {
@@ -127,7 +139,8 @@ export const RESOLVERMONGO = {
     Module: {
 
        async chapters(root, args, context, info) {
-            return await Article.findByModuleId(root.id)
+           let id = root.id
+           return await Article.find({moduleId : id})
 
         }
     }
