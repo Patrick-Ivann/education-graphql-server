@@ -48,6 +48,10 @@ import {
     RESOLVER as user
 } from "./resolver/UserResolver";
 
+import {
+    RESOLVERMONGO as question
+} from "./resolver/questionResolver";
+
 
 
 // const authResolvers = mapValues(mergeResolvers(resolvers), (resolver, type) =>
@@ -59,7 +63,7 @@ import {
    
 //     return item;
 //   }));
-const   RESOLVERS =  [article, image, part, module, course, user]
+const   RESOLVERS =  [article, image, part, module, course, question, user]
 
 
 /* const RESOLVERS = {

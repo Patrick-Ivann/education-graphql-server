@@ -19,6 +19,8 @@ import {
 
 import Article from '../../mongoDB/ArticleSchema'
 import Part from '../../mongoDB/PartSchema'
+import { Types } from "mongoose";
+import question from "../../mongoDB/QuestionSchema";
 
 
 const pubsub = new PubSub();
@@ -62,11 +64,24 @@ export const RESOLVERMONGO = {
         },
         article: (root, args) => {
 
-            if (!mongoose.Types.ObjectId.isValid(args.id)) {
+            if (!Types.ObjectId.isValid(args.id)) {
                 throw new UserInputError(`${args.id} cette ID n'est pas valide. `)
             }
 
             return Article.findById(args.id)
+        },
+
+
+        articleByModule: async (root, args) => {
+
+            let fetchedArticle = await Article.find({moduleId : args.moduleId})
+
+            console.log(fetchedArticle)
+
+            if (!fetchedArticle || fetchedArticle.length === 0 ) {
+                throw Error ("Aucun article dans ce module.")
+            }
+            return fetchedArticle
         }
 
     },
@@ -160,10 +175,23 @@ export const RESOLVERMONGO = {
             })
 
 
+        },
+
+        async questions(root) {
+
+
+            let id  =root.id 
+
+            return await question.find({
+                articleId : id
+            })
         }
 
 
     }
+
+
+    
 }
 
 

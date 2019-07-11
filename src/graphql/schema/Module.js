@@ -11,6 +11,7 @@ type Module { # on risque de là aussi tous les renseigner à la création du co
     subtitle: String! # ou genre petitre intro du modules
     introduction : String! #text
     chapters: [Article!]! #le nerf de la guerre le champs qui va se faire update le plus souvent certainement 
+    questions: [Question!]!
     objectives: [String!] #string to split
     requirements: [String!] #string to split
 }
@@ -18,6 +19,7 @@ type Module { # on risque de là aussi tous les renseigner à la création du co
 extend type Query {
     modules: [Module!]!
     module(id: ID!): Module!
+    moduleByCourse(courseId: String!):[Module!]
 }
 
 extend type Mutation {

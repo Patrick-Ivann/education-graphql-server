@@ -19,6 +19,11 @@ import Article from "../../mongoDB/ArticleSchema";
 import {
     PubSub
 } from "graphql-subscriptions";
+import {
+    Types
+} from "mongoose";
+import question from "../../mongoDB/QuestionSchema";
+
 
 
 /**
@@ -34,16 +39,27 @@ export const RESOLVERMONGO = {
 
     Query: {
 
-        modules: async() => {
-            return Module.find({});
+        modules: async () => {
+            return await Module.find({});
         },
-        module: (root, args) => {
+        module: async (root, args) => {
 
-            if (!mongoose.Types.ObjectId.isValid(args.id)) {
+            if (!Types.ObjectId.isValid(args.id)) {
                 throw new UserInputError(`${args.id} cette ID n'est pas valide. `)
             }
 
-            return Module.findById(args.id)
+            return await Module.findById(args.id)
+        },
+        moduleByCourse: async (root, args) => {
+
+            let fetchedModule = await Module.find({courseId : args.courseId})
+
+            console.log(fetchedModule)
+
+            if (!fetchedModule || fetchedModule.length === 0 ) {
+                throw Error ("Aucun Module dans ce cours.")
+            }
+            return fetchedModule
         }
 
     },
@@ -130,7 +146,7 @@ export const RESOLVERMONGO = {
             }).catch((error) => console.log(error))
         }
     },
-    
+
     Subscription: {
 
     },
@@ -138,11 +154,24 @@ export const RESOLVERMONGO = {
 
     Module: {
 
-       async chapters(root, args, context, info) {
-           let id = root.id
-           return await Article.find({moduleId : id})
+        async chapters(root, args, context, info) {
+            let id = root.id
+            return await Article.find({
+                moduleId: id
+            })
 
+        },
+
+        async questions(root) {
+
+
+            let id  =root.id 
+
+            return await question.find({
+                moduleId : id
+            })
         }
+
     }
 }
 

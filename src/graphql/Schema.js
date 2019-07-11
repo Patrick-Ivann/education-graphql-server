@@ -24,6 +24,9 @@ import {
     typeDef as Part
 } from './schema/Part'
 import {
+    typeDef as Question
+} from './schema/Question'
+import {
     tradeTokenForUser
 } from './resolver/utils/authHelpers.js';
 import {
@@ -44,7 +47,7 @@ import {
 const APOLLOSERVER = new ApolloServer({
     cors: corsWrapper(),
 
-    typeDefs: [TYPEDEFS, Article, Image, User, Module, Course, Part],
+    typeDefs: [TYPEDEFS, Article, Image, User, Module, Course, Part,Question],
     resolvers: RESOLVERS,
     /* context: async ({
         req,

@@ -18,6 +18,7 @@ type Article { #complété par 1000 text input ainsi qu'un petit textArea pour l
     difficulty: String!
     introduction : String!
     parts: [Part!]
+    questions: [Question!]!
     createdAt: String!
     updatedAt: String!
 
@@ -29,6 +30,8 @@ type Article { #complété par 1000 text input ainsi qu'un petit textArea pour l
 extend type Query {
     articles: [Article!]!
     article(id : ID!): Article!
+    articleByModule(moduleId: String!):[Article!]
+
 
 }
 
