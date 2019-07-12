@@ -55,6 +55,8 @@ httpServer.listen({
 
 "use strict";
 
+var path = require("path")
+
 var _http = require("http");
 
 var _express = _interopRequireDefault(require("express"));
@@ -177,7 +179,8 @@ var httpServer = (0, _http.createServer)(app);
 
 _schema.default.installSubscriptionHandlers(httpServer);
 
-app.use('/fdt', _express.default.static(__dirname + '/images'));
+app.use('/fdt', _express.default.static(path.join(__dirname,'../images')));
+console.log(__dirname+"/../images");
 httpServer.listen({
     port: PORT
 }, function () {
