@@ -42,6 +42,8 @@ import User from "../../mongoDB/UserSchema";
 import UserProgress from "../../mongoDB/UserProgress";
 import UserAnswer from "../../mongoDB/UserFailureSchema";
 
+import moment from 'moment';
+
 /**
  * TODO ADD SUBSCRIPTION AND MONGOOSE SUPPOPRT
  * TODO ADD ENROLLEMENT TO COURSE SUPPPORT 
@@ -159,7 +161,60 @@ export const RESOLVER = {
         },
 
 
-        signOut: authenticatedNew((root, args, context, info) => {
+        signOut: /*authenticatedNew(*/ async (root, args, context, info) => {
+
+            /**
+             * TODO UPDATE TIMESPENT FIELD
+             * !EXPECTING LASTCONNECTION ARG
+             */
+
+
+
+
+
+            const user = await readToken(await extractToken(context), context.secret)
+
+
+            /**
+             * TODO ADD MOMENT.JS TO CALCULATE TIME SPENT SINCE THE LAST CONNECTION
+             */
+
+            var now = new moment(Date.now())
+            var lastConnection = new moment(user.user.lastConnection)
+            var storedTimeSpent = moment.duration(Number(user.user.timeSpent),"seconds")
+            var timeSpent = 0
+
+            var timeSpentThisSession = moment.duration(now.diff(lastConnection))
+
+            console.log(moment.isDuration(moment.duration( parseFloat( user.user.timeSpent))))
+            console.log(moment.duration(Number(user.user.timeSpent), "seconds").asSeconds())
+
+            console.log(storedTimeSpent.minutes())
+            console.log(storedTimeSpent.asMinutes())
+
+
+            console.log(timeSpentThisSession.minutes())
+            console.log("time dans le cookie donc avant " + user.user.timeSpent + " -- " + moment.duration(storedTimeSpent).toISOString())
+            user.user.timeSpent !== "0000" ? timeSpent = moment.duration(storedTimeSpent).add(timeSpentThisSession) : timeSpent = timeSpentThisSession;
+
+            console.log("timeSpent in minute " + moment.duration(timeSpent).minutes() + " dd " + moment.duration(timeSpent).minutes())
+            console.log("timeSpent " + timeSpent + " timeSession mdr challah c'est différent " + timeSpentThisSession)
+            console.log(moment.duration(timeSpent).hours() + "H" + moment.duration(timeSpent).Minutes())
+            console.log(moment.duration(timeSpent).seconds())
+
+            User.findOneAndUpdate({
+                _id: user.user._id
+            }, {
+                $set: {
+                    timeSpent:  moment.duration(timeSpent)
+                }
+            }, {
+                new: true,
+            }).then((result) => {
+                console.log(result)
+            }).catch((err) => {
+                throw new Error("impossible de vous deconnecter")
+            });
 
 
 
@@ -174,7 +229,7 @@ export const RESOLVER = {
                         }) */
 
             return true
-        }),
+        } /*)*/ ,
 
 
         signUp: async (root, args, {
@@ -188,7 +243,6 @@ export const RESOLVER = {
 
             const user = await User.create(args)
 
-            req.session.userId = user.id
 
             return user
         },
@@ -245,12 +299,15 @@ export const RESOLVER = {
             res.set("x-token", legitToken)
             res.set("x-refresh-token", refreshToken)
 
+            console.log(moment.duration(Number(user.timeSpent),'seconds').asHours() + " : " + moment.duration(Number(user.timeSpent),'seconds').asMinutes())
+
 
             return {
                 ...user._doc,
+               // timeSpent : moment.duration(user.timeSpent).asHours() + ":" + moment.duration(user.timeSpent).asMinutes(),
                 id: user._id,
                 token: legitToken,
-                refreshToken : refreshToken
+                refreshToken: refreshToken
             };
 
 
@@ -459,7 +516,7 @@ export const RESOLVER = {
         }
 
 
-        },
+    },
 
 
     User: {
@@ -490,7 +547,7 @@ export const RESOLVER = {
                 }
 
 
-                }
+            }
 
             return obj
         },
@@ -499,19 +556,19 @@ export const RESOLVER = {
             Tracking:{
 
                 test : (root,args) =>{
-
+    
                     return "tttt"
-        },
+                },
 
             },
 
-
+    
             Progress : async(root, args, context, info) => {
                 console.log(root)
                 return await UserProgress.find({ userId : root.id})
-
-    },
-
+    
+            }, 
+                
             surveyFailure : async(root,args,context,info) => {
                 return await UserFailure.find({userId: root.id})
             }

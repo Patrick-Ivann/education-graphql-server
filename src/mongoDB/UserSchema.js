@@ -54,6 +54,11 @@ const UserSchema = new Schema({
     },
 
 
+    "timeSpent": {
+        type: String,
+        default: "0000"
+    }
+
 
 
 }, {
@@ -69,7 +74,7 @@ UserSchema.pre("save", async function (next) {
             next(error)
         }
     }
-    
+
     next()
 })
 
