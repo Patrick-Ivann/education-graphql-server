@@ -18,6 +18,7 @@ import Module from "../../mongoDB/ModuleSchema";
 import {
     PubSub
 } from "graphql-subscriptions";
+import { Types } from "mongoose";
 
 
 const pubsub = new PubSub();
@@ -39,7 +40,7 @@ export const RESOLVERMONGO = {
         },
         course: (root, args) => {
 
-            if (!mongoose.Types.ObjectId.isValid(args.id)) {
+            if (!Types.ObjectId.isValid(args.id)) {
                 throw new UserInputError(`${args.id} cette ID n'est pas valide. `)
             }
 

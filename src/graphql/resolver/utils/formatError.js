@@ -36,7 +36,7 @@ const e401s = [{
     
 ];
 
-const e403s = ['Forbidden'];
+const e403s = ['Forbidden',"unavailable"];
 // export const formatError = (err, response) => {
 export const formatError = err => { // eslint-disable-line
     let error = err;
@@ -71,6 +71,7 @@ export const formatError = err => { // eslint-disable-line
                 code: err.extensions.code,
             },
         }; // thus set the status in the error
+        console.log(error)
     }
     return error;
 };
