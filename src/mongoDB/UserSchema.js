@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
-import { hash,compare } from "bcryptjs";
+import {
+    hash,
+    compare
+} from "bcryptjs";
 
 
 // Define schema
@@ -21,6 +24,7 @@ const UserSchema = new Schema({
             value
         }) => `Pseudo ${username} déjà pris`
     },
+
     "mail": {
         type: String,
         validator: mail => User.isExisting(mail),
@@ -38,10 +42,16 @@ const UserSchema = new Schema({
         type: String,
 
     },
+    "enrolledCourse":{
+        type: [String]
+    },
     "rank": {
         type: String,
     }, //"origines"
 
+    "lastConnection": {
+        type: Date,
+    },
 
 
 
@@ -75,7 +85,7 @@ UserSchema.statics.findByLogin = function (mail, cb) {
 
 
 UserSchema.methods.checkPasswordEquals = function (password) {
-    return compare(password,this.password)
+    return compare(password, this.password)
 }
 
 

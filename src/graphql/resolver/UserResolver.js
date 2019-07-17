@@ -29,13 +29,18 @@ import {
     checkUnAuthenticatedNew,
     authenticatedNew,
     createRefreshedToken,
-    generateTokens
+    generateTokens,
+    readToken,
+    extractToken,
+    tradeTokenForUserNew
 } from "./utils/authHelpers";
 import {
     signIn,
     signUp
 } from "../schema/joi/user";
 import User from "../../mongoDB/UserSchema";
+import UserProgress from "../../mongoDB/UserProgress";
+import UserAnswer from "../../mongoDB/UserFailureSchema";
 
 /**
  * TODO ADD SUBSCRIPTION AND MONGOOSE SUPPOPRT
@@ -92,7 +97,7 @@ export const RESOLVER = {
                     return User.find({})
                 }, */
 
-        users: () => users,
+        users: async () => await User.find({}),
         user: authenticated((root, args, context, info) => {
 
             // if (!mongoose.Types.ObjectId.isValid(args.id)) {
@@ -146,7 +151,7 @@ export const RESOLVER = {
                 var user = jwt.verify(authToken.trim(), secret, {
                     algorithms: "HS384"
                 });
-                return createRefreshedToken(user.id,ctx.secret,"30min")
+                return createRefreshedToken(user.id, ctx.secret, "30min")
             } catch (error) {
                 throw new AuthenticationError('UNAUTHORIZED');
 
@@ -189,10 +194,14 @@ export const RESOLVER = {
         },
 
         signIn: async (root, args, {
-            req,res,
+            req,
+            res,
             secret
         }, info) => {
 
+            /**
+             * TODO UPDATE "LAST CONNECTION" FIELD
+             */
 
             if (req.headers.authorization) {
                 checkUnAuthenticatedNew(req)
@@ -211,8 +220,25 @@ export const RESOLVER = {
             // req.session.userId = user.id
 
             var tok = await createToken(user, secret, '30m');
+            var userUpdate = {}
 
-            var [legitToken, refreshToken] = await generateTokens(user);
+            userUpdate.lastConnection = new Date(Date.now())
+
+
+            const updatedUser = await User.findOneAndUpdate({
+                _id: user.id
+            }, {
+                $set: {
+                    lastConnection: userUpdate.lastConnection
+                }
+            }, {
+                new: true,
+            })
+
+            var [legitToken, refreshToken] = await generateTokens(updatedUser);
+
+
+
 
 
             res.set("Access-Control-Expose-Headers", "x-token", "x-refresh-token")
@@ -234,80 +260,265 @@ export const RESOLVER = {
 
 
 
-        pushUser: async (root, args, {
-            secret
-        }) => {
 
-            Joi.validate(args, signUp)
+        pushError: async (root, args, context) => {
 
 
-            users.map((user) => {
-                if (user.mail === args.mail) {
-                    throw new UserInputError("Ce mail est déjà associé à un compte")
-                }
-            })
 
-            const newUser = {
+            const user = await readToken(await extractToken(context), context.secret)
+            /* .then((result) => {
+
+
+                        }).catch((err) => {
+                            console.log(err)
+                            throw new ApolloError(err)
+                        }); */
+
+            console.log(user.user._id)
+
+            var failure = {}
+
+            args.articleId && (failure.articleId = args.articleId)
+            args.moduleId && (failure.moduleId = args.moduleId)
+
+            failure.surveyType = args.surveyType
+            failure.answerType = "failure"
+
+            failure.questionId = args.questionId
+
+            const newFailure = new UserAnswer({
+
                 id: mongoObjectId(),
-                username: args.username,
-                mail: args.mail,
-                firstname: args.firstname,
-                lastname: args.lastname,
-                password: await hash(args.password, 12),
-                rank: 1,
-                createAt: Date.now().toString()
+                userId: user.user._id,
+                moduleId: failure.moduleId,
+                articleId: failure.articleId,
+                questionId: failure.questionId,
+                surveyType: failure.surveyType,
+                answerType: failure.answerType
+            })
 
 
-            };
-            console.log(newUser)
-            users.push(newUser);
-
-
-
-            pubSub.publish(USER_SUBSCRIPTION_TOPIC, {
-                newUser,
-            });
-
-            return createToken(newUser, secret, "2h");
-        },
-
-
-        popUser: (root, args) => {
-            users.map(user => {
-                if (user.id === args.id && user.password === user.password) {
-
-                    users.splice(args.id - 1, 1)
-                    return args.id;
+            newFailure.save((err, result) => {
+                if (err) {
+                    console.log("---userFailure save failed " + err)
+                    throw new Error("---userFailure save failed " + err)
 
                 }
+                console.log("+++userFailure saved successfully ")
+                console.log(result)
+
+                return result
+
 
             })
+
+            return user.user
         },
 
-        updateUser: async (root, args) => {
-
-            users.map(async (user) => {
-                if (user.id === args.id) {
+        pushSucces: async (root, args, context) => {
 
 
-                    args.username ? username = args.username : null
+
+            const user = await readToken(await extractToken(context), context.secret)
+            /* .then((result) => {
 
 
-                    args.password ? password = await hash(args.password, 12) : null
+                        }).catch((err) => {
+                            console.log(err)
+                            throw new ApolloError(err)
+                        }); */
 
-                    args.courses ? courses = args.courses : null
+            console.log(user.user._id)
 
-                    return user;
+            var succes = {}
+
+            args.articleId && (succes.articleId = args.articleId)
+            args.moduleId && (succes.moduleId = args.moduleId)
+
+            succes.surveyType = args.surveyType
+            succes.answerType = "succes"
+
+            failure.questionId = args.questionId
+
+            const newSucces = new UserAnswer({
+
+                id: mongoObjectId(),
+                userId: user.user._id,
+                moduleId: succes.moduleId,
+                articleId: succes.articleId,
+                questionId: succes.questionId,
+                surveyType: succes.surveyType,
+                answerType: succes.answerType
+            })
+
+
+            newSucces.save((err, result) => {
+                if (err) {
+                    console.log("---userFailure save failed " + err)
+                    throw new Error("---userFailure save failed " + err)
+
                 }
-            });
-            return users.filter(user => user.id === id)[0];
+                console.log("+++userFailure saved successfully ")
+                console.log(result)
+
+                return result
+
+
+            })
+
+            return user.user
+        },
+        pushProgress: async (root, args) => {
+
+            const user = await readToken(await extractToken(context), context.secret)
+
+            const newProgress = new UserProgress({
+                id: mongoObjectId(),
+                userId: user.user._id,
+                articleId: args.articleId,
+                moduleId: args.moduleId,
+                courseId: args.courseId
+            })
+
+            newProgress.save((err, result) => {
+                if (err) {
+                    console.log("---userProgress save failed " + err)
+                    throw new Error("---userProgress save failed " + err)
+
+                }
+                console.log("+++userProgress saved successfully ")
+                console.log(result)
+
+                return result
+
+
+            })
+
+            return user
 
         },
 
 
+        updateProgress: async (root, args) => {
 
+            const user = await readToken(await extractToken(context), context.secret)
+            var progress = {}
+
+            args.courseId && (progress.courseId = args.courseId)
+            args.moduleId && (progress.moduleId = args.moduleId)
+
+
+            UserProgress.findOneAndUpdate({
+                userId: user.user._id
+            }, {
+                $set: {
+                    progress
+                }
+            }, {
+                new: true
+            }).then((result) => {
+                console.log(result)
+
+                return result
+            }).catch((error) => console.log(error))
+
+            return await User.findById(user.user._id);
+
+        },
+
+        /**
+         * !TO TRIGGER WHEN SOMEONE BUY A COURSE
+         */
+        enrolledToCourse: async (root, args, context, info) => {
+
+
+            const user = await readToken(await extractToken(context), context.secret)
+            var modifiedUser = {}
+
+            args.courseId && (modifiedUser.courseId = args.courseId)
+
+
+            User.findOneAndUpdate({
+                userId: user.user._id
+            }, {
+                $set: {
+                    modifiedUser
+                }
+            }, {
+                new: true
+            }).then((result) => {
+                console.log(result)
+
+                return result
+            }).catch((error) => console.log(error))
+
+            return await User.findById(user.user._id);
+
+
+
+        }
+
+
+        },
+
+
+    User: {
+
+        tracking: (root, args) => {
+            console.log(root.mail)
+
+            const obj = {
+
+                test: () => {
+                    console.log(root)
+                    return root.id
+                },
+
+
+                progress: async () => {
+
+                    return await UserProgress.find({
+                        userId: root.id
+                    })
+
+                },
+
+                surveyReort: async () => {
+                    return await UserAnswer.find({
+                        userId: root.id
+                    })
+                }
+
+
+                }
+
+            return obj
+        },
+        /* tracking: {
+
+            Tracking:{
+
+                test : (root,args) =>{
+
+                    return "tttt"
+        },
+
+            },
+
+
+            Progress : async(root, args, context, info) => {
+                console.log(root)
+                return await UserProgress.find({ userId : root.id})
 
     },
+
+            surveyFailure : async(root,args,context,info) => {
+                return await UserFailure.find({userId: root.id})
+            }
+    
+        }*/
+
+    }
 
 
 

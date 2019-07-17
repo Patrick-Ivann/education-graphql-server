@@ -100,6 +100,7 @@ const tokenRefresher = async (req, res, next) => {
     const authorization = req.headers.authorization
 
     if (authorization) {
+        console.log(authorization);
         const token = authorization.split("Bearer")[1].trim()
         try {
             var user = jwt.verify(authToken.trim(), process.env.JWT_secret, {
@@ -122,6 +123,8 @@ const tokenRefresher = async (req, res, next) => {
                 }
             }
         }
+    }else{
+        throw new Error("TOKEN ERROR")
     }
 
     next()
@@ -129,7 +132,7 @@ const tokenRefresher = async (req, res, next) => {
 
 
 
-app.use(tokenRefresher);
+//app.use(tokenRefresher);
 
 app.get('/', (req, res) => {
     res.writeHead(200, {
@@ -180,7 +183,6 @@ var httpServer = (0, _http.createServer)(app);
 _schema.default.installSubscriptionHandlers(httpServer);
 
 app.use('/fdt', _express.default.static(path.join(__dirname,'../images')));
-console.log(__dirname+"/../images");
 httpServer.listen({
     port: PORT
 }, function () {
