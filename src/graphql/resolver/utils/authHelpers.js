@@ -1,5 +1,5 @@
 import {
-    AuthenticationError
+    AuthenticationError,ApolloError
 } from "apollo-server-core";
 
 import User from "../../../mongoDB/UserSchema";
@@ -95,17 +95,21 @@ export const createRefreshedToken = async (id, secret, expiresIn) => jwt.sign({
 
 });
 export const createToken = async (user, secret, expiresIn) => {
+    var lastConnection = new Date(Date.now())
     const {
         id,
         mail,
         username,
-        courses
+        courses,
+        timeSpent
     } = user;
     return await jwt.sign({
         id,
         mail,
         username,
-        courses
+        courses,
+        lastConnection,
+        timeSpent
     }, secret, {
         expiresIn,
         algorithm: 'HS384'
@@ -204,6 +208,46 @@ export const tradeTokenForUserNew = async (authToken, secret) => {
 
 }
 
+/**
+ * 
+ * @param {ObjectConstructor} context 
+ * @returns {String} trimmedAuthToken
+ */
+export const extractToken = async (context) =>{
+
+    
+    try {
+        const authTokenHeader = context.req.headers.authorization;
+        const authToken = authTokenHeader.split("Bearer")[1];
+        
+        return authToken.trim()
+
+    } catch (error) {
+        
+        throw new ApolloError('UNAUTHORIZED')
+
+    }
+}
+
+/**
+ * 
+ * @param {String} authToken 
+ * @param {String} secret 
+ */
+export const readToken = async (authToken, secret) => {
+    
+    try {
+        var user = jwt.verify(authToken, secret, {
+            algorithms: "HS384"
+        });
+        
+        return user
+        
+    } catch (error) {
+        throw new ApolloError('UNAUTHORIZED')
+    }
+
+}
 
 
 export const authenticatedNew = next => (root, args, context, info) => {
