@@ -29,6 +29,8 @@ type Token {
   }
 
 type Tracking {
+    totalTime:String
+    chapterTime: String
     test : String,
 surveyReport : [SurveyReport!]
 #surveyFailure: [SurveyReport!],
@@ -49,6 +51,7 @@ type SurveyReport {
 type Progress {
     userId: String!,
     articleId: String!,
+    timeSpent:String!
     moduleId: String!
     courseId: String!
 }
@@ -111,6 +114,7 @@ pushSucces( articleId: String, moduleId:String, surveyType:String!, questionId:S
 
 pushProgress( articleId: String!, moduleId: String!,courseId:String!):User
 updateProgress( articleId:String,ModuleId:String):User
+updateProgressTime(timeSpent:String, articleId:String):User
 enrolledToCourse(courseId: String):User
  }
 

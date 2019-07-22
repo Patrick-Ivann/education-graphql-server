@@ -1,4 +1,4 @@
-import {
+import to, {
     mongoObjectId
 } from "../../utils";
 import {
@@ -43,6 +43,9 @@ import UserProgress from "../../mongoDB/UserProgress";
 import UserAnswer from "../../mongoDB/UserFailureSchema";
 
 import moment from 'moment';
+import {
+    isNumber
+} from "util";
 
 /**
  * TODO ADD SUBSCRIPTION AND MONGOOSE SUPPOPRT
@@ -178,43 +181,43 @@ export const RESOLVER = {
             /**
              * TODO ADD MOMENT.JS TO CALCULATE TIME SPENT SINCE THE LAST CONNECTION
              */
+            /* 
+                        var now = new moment(Date.now())
+                        var lastConnection = new moment(user.user.lastConnection)
+                        var storedTimeSpent = moment.duration(Number(user.user.timeSpent), "seconds")
+                        var timeSpent = 0
 
-            var now = new moment(Date.now())
-            var lastConnection = new moment(user.user.lastConnection)
-            var storedTimeSpent = moment.duration(Number(user.user.timeSpent),"seconds")
-            var timeSpent = 0
+                        var timeSpentThisSession = moment.duration(now.diff(lastConnection))
 
-            var timeSpentThisSession = moment.duration(now.diff(lastConnection))
+                        console.log(moment.isDuration(moment.duration(parseFloat(user.user.timeSpent))))
+                        console.log(moment.duration(Number(user.user.timeSpent), "seconds").asSeconds())
 
-            console.log(moment.isDuration(moment.duration( parseFloat( user.user.timeSpent))))
-            console.log(moment.duration(Number(user.user.timeSpent), "seconds").asSeconds())
-
-            console.log(storedTimeSpent.minutes())
-            console.log(storedTimeSpent.asMinutes())
+                        console.log(storedTimeSpent.minutes())
+                        console.log(storedTimeSpent.asMinutes())
 
 
-            console.log(timeSpentThisSession.minutes())
-            console.log("time dans le cookie donc avant " + user.user.timeSpent + " -- " + moment.duration(storedTimeSpent).toISOString())
-            user.user.timeSpent !== "0000" ? timeSpent = moment.duration(storedTimeSpent).add(timeSpentThisSession) : timeSpent = timeSpentThisSession;
+                        console.log(timeSpentThisSession.minutes())
+                        console.log("time dans le cookie donc avant " + user.user.timeSpent + " -- " + moment.duration(storedTimeSpent).toISOString())
+                        user.user.timeSpent !== "0000" ? timeSpent = moment.duration(storedTimeSpent).add(timeSpentThisSession) : timeSpent = timeSpentThisSession;
 
-            console.log("timeSpent in minute " + moment.duration(timeSpent).minutes() + " dd " + moment.duration(timeSpent).minutes())
-            console.log("timeSpent " + timeSpent + " timeSession mdr challah c'est différent " + timeSpentThisSession)
-            console.log(moment.duration(timeSpent).hours() + "H" + moment.duration(timeSpent).Minutes())
-            console.log(moment.duration(timeSpent).seconds())
+                        console.log("timeSpent in minute " + moment.duration(timeSpent).minutes() + " dd " + moment.duration(timeSpent).minutes())
+                        console.log("timeSpent " + timeSpent + " timeSession mdr challah c'est différent " + timeSpentThisSession)
+                        console.log(moment.duration(timeSpent).hours() + "H" + moment.duration(timeSpent).Minutes())
+                        console.log(moment.duration(timeSpent).seconds())
 
-            User.findOneAndUpdate({
-                _id: user.user._id
-            }, {
-                $set: {
-                    timeSpent:  moment.duration(timeSpent)
-                }
-            }, {
-                new: true,
-            }).then((result) => {
-                console.log(result)
-            }).catch((err) => {
-                throw new Error("impossible de vous deconnecter")
-            });
+                        User.findOneAndUpdate({
+                            _id: user.user._id
+                        }, {
+                            $set: {
+                                timeSpent: moment.duration(timeSpent)
+                            }
+                        }, {
+                            new: true,
+                        }).then((result) => {
+                            console.log(result)
+                        }).catch((err) => {
+                            throw new Error("impossible de vous deconnecter")
+                        }); */
 
 
 
@@ -299,12 +302,12 @@ export const RESOLVER = {
             res.set("x-token", legitToken)
             res.set("x-refresh-token", refreshToken)
 
-            console.log(moment.duration(Number(user.timeSpent),'seconds').asHours() + " : " + moment.duration(Number(user.timeSpent),'seconds').asMinutes())
+            console.log(moment.duration(Number(user.timeSpent), 'seconds').asHours() + " : " + moment.duration(Number(user.timeSpent), 'seconds').asMinutes())
 
 
             return {
                 ...user._doc,
-               // timeSpent : moment.duration(user.timeSpent).asHours() + ":" + moment.duration(user.timeSpent).asMinutes(),
+                // timeSpent : moment.duration(user.timeSpent).asHours() + ":" + moment.duration(user.timeSpent).asMinutes(),
                 id: user._id,
                 token: legitToken,
                 refreshToken: refreshToken
@@ -411,11 +414,11 @@ export const RESOLVER = {
 
             newSucces.save((err, result) => {
                 if (err) {
-                    console.log("---userFailure save failed " + err)
-                    throw new Error("---userFailure save failed " + err)
+                    console.log("---userSucces save failed " + err)
+                    throw new Error("---userSucces save failed " + err)
 
                 }
-                console.log("+++userFailure saved successfully ")
+                console.log("+++userSucces saved successfully ")
                 console.log(result)
 
                 return result
@@ -425,7 +428,7 @@ export const RESOLVER = {
 
             return user.user
         },
-        pushProgress: async (root, args) => {
+        pushProgress: async (root, args, context) => {
 
             const user = await readToken(await extractToken(context), context.secret)
 
@@ -455,7 +458,10 @@ export const RESOLVER = {
 
         },
 
-
+        /**
+         * 
+         * !DEPRECATED 
+         */
         updateProgress: async (root, args) => {
 
             const user = await readToken(await extractToken(context), context.secret)
@@ -463,6 +469,7 @@ export const RESOLVER = {
 
             args.courseId && (progress.courseId = args.courseId)
             args.moduleId && (progress.moduleId = args.moduleId)
+
 
 
             UserProgress.findOneAndUpdate({
@@ -480,6 +487,50 @@ export const RESOLVER = {
             }).catch((error) => console.log(error))
 
             return await User.findById(user.user._id);
+
+        },
+
+        updateProgressTime: async (root, args, context, info) => {
+            const user = await readToken(await extractToken(context), context.secret)
+            var time = {}
+            var progress = {}
+            var err, userProgress
+            args.timeSpent && (progress.timeSpent = args.timeSpent);
+
+
+            [err, userProgress] = await to(
+                UserProgress.findOneAndUpdate({
+                    userId: user.user._id,
+                    articleId: args.articleId
+                }, {
+                    $set: {
+                        timeSpent: args.timeSpent
+                    },
+                }, {
+                    upsert: true,
+                    new: true
+                }));
+            if (!userProgress) throw new ApolloError('Impossible de mettre à jour la progression utilisateur found');
+
+            time.SpentTotalFromCookie = Number(user.user.timeSpent) // alreadySAVEDtIME
+            time.SpentOnArticle = Number(userProgress.timeSpent) //time to add to the alreadyStoredVALUE
+            time.SpentToSave = time.SpentTotalFromCookie + time.SpentOnArticle //Upcomming user.user.timeSpent
+
+            User.findByIdAndUpdate(user.user._id, {
+                $set: {
+                    timeSpent: time.SpentToSave
+                }
+            }, {
+                new: true
+            }).then((result) => {
+                console.log(result)
+
+                return result
+            }).catch((error) => console.log(error))
+
+
+            return await User.findById(user.user._id);
+
 
         },
 
@@ -522,13 +573,28 @@ export const RESOLVER = {
     User: {
 
         tracking: (root, args) => {
-            console.log(root.mail)
 
             const obj = {
 
                 test: () => {
                     console.log(root)
                     return root.id
+                },
+
+                chapterTime: async () => {
+                    let test = await UserProgress.find({
+                        userId: root.id
+                    }).select("timeSpent -_id")
+                    return test.reduce((previous, current) => Number(previous) + Number(current.timeSpent), 0);     
+                },
+                /**
+                 * TODO QUERY FIELD timeSpent ON USER
+                 */
+                totalTime: async () => {
+                    var time = await User.findById(root.id).select("timeSpent -_id")
+                    var seconds = Number(time.timeSpent)
+                    return Math.floor(moment.duration(seconds, 'seconds').asHours()) + 'h:' + moment.duration(seconds, 'seconds').minutes();
+
                 },
 
 

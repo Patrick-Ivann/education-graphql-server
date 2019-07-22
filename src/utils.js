@@ -26,3 +26,12 @@ export const mapValues = (array) => {
 )
 }
 
+
+//https://blog.grossman.io/how-to-write-async-await-without-try-catch-blocks-in-javascript/
+export default function to(promise) {
+    return promise.then(data => {
+       return [null, data];
+    })
+    .catch(err => [err]);
+ }
+

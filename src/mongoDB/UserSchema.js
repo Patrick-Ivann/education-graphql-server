@@ -56,7 +56,7 @@ const UserSchema = new Schema({
 
     "timeSpent": {
         type: String,
-        default: "0000"
+        default: "1"
     }
 
 

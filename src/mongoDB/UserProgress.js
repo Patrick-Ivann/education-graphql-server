@@ -22,6 +22,10 @@ const UserProgressSchema = new Schema({
         type: "String"
     },
 
+timeSpent: {
+        type: "String",
+        default:"1"
+    },
 }, {
     timestamps: true
 })
