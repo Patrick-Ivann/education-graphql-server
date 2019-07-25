@@ -120,8 +120,12 @@ export const createToken = async (user, secret, expiresIn) => {
 
 // https: //raw.githubusercontent.com/benawad/graphql-express-template/22_advanced_jwt_auth/auth.js
 export const generateTokens = async (user) => {
+    console.log(user)
+    
+    const {id} = user
     const createToken = jwt.sign({
-            user
+        id : id,    
+        user
         },
         process.env.JWT_SECRET, {
             expiresIn: '35m',
@@ -130,7 +134,6 @@ export const generateTokens = async (user) => {
         },
     );
 
-    const {id} = user
     const createRefreshToken = jwt.sign({
             id
         },
