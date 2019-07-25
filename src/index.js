@@ -100,7 +100,6 @@ const tokenRefresher = async (req, res, next) => {
     const authorization = req.headers.authorization
 
     if (authorization) {
-        console.log(authorization);
         const token = authorization.split("Bearer")[1].trim()
         try {
             var user = jwt.verify(authToken.trim(), process.env.JWT_secret, {
