@@ -18,20 +18,37 @@ type User {
     rank: Int! # 0 = user, 1 = admin
     #courses: [Course!] # Les cours qu'il a payé
     enrolledCourse : [String!]
+    userTrackingByCourse : UserTrackingByCourse
     tracking : Tracking
     createdAt: String!
     updatedAt: String!
 }
 
+type UserTrackingByCourse {
+    enrolledCourseTest : [String]
+    nestTracking : Tracking
+}
+
+type CurrentReading {
+    moduleId:String
+    articleId: String
+}
+
 type Token {
     token: String!
     refreshToken : String!
+    user: User
   }
 
 type Tracking {
+    currentArticle: CurrentReading
     totalTime:String
     chapterTime: String
+    courseProgress: String
     test : String,
+    chapterGrade:String,
+    moduleGrade:String,
+
 surveyReport : [SurveyReport!]
 #surveyFailure: [SurveyReport!],
 #surveySucces: [SurveyReport]
@@ -45,12 +62,12 @@ type SurveyReport {
     moduleId: String,
     questionId :String!,
     surveyType: String!,
-    answerType: String!
+    answerType(type:String): String!
 }
 
 type Progress {
     userId: String!,
-    articleId: String!,
+    articleId: String,
     timeSpent:String!
     moduleId: String!
     courseId: String!
@@ -63,6 +80,8 @@ extend type Query {
     isAuthenticated: String @isAuthenticated
 
     userOnCourse(courseId:String!):User
+
+    userTracking(courseId:String!userId:String):Tracking
 }
 
  extend type Mutation {
