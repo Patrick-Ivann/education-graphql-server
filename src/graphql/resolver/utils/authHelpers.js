@@ -272,11 +272,3 @@ export const authenticatedNew = next => (root, args, context, info) => {
 
     return next(root, args, context, info);
 };
-export const authenticated = next => (root, args, context, info) => {
-    if (!context || !context.req || !context.req.session.userId) {
-        console.log("middleware")
-        throw new Error(`UNAUTHORIZED`);
-    }
-
-    return next(root, args, context, info);
-};
