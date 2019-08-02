@@ -54,6 +54,7 @@ httpServer.listen({
 
 
 "use strict";
+require("babel-polyfill");
 
 var path = require("path")
 
