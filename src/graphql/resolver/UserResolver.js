@@ -24,7 +24,6 @@ import {
     createToken,
     checkAuthenticated,
     trySignUp,
-    authenticated,
     checkUnAuthenticated,
     checkUnAuthenticatedNew,
     authenticatedNew,
@@ -44,8 +43,16 @@ import UserAnswer from "../../mongoDB/UserFailureSchema";
 
 import moment from 'moment';
 import {
-    isNumber
+    isNumber,
+    promisify,
+    isObject
 } from "util";
+import article from "../../mongoDB/ArticleSchema";
+import userAnswer from "../../mongoDB/UserFailureSchema";
+import {
+    Module
+} from "module";
+import module from "../../mongoDB/ModuleSchema";
 
 /**
  * TODO ADD SUBSCRIPTION AND MONGOOSE SUPPOPRT
@@ -59,36 +66,22 @@ export const RESOLVER = {
 
     Query: {
 
-        date: (root, args, context, info) => {
-            checkAuthenticated(context.req);
-
-            return Date.now().toString()
-        },
+        date: authenticatedNew((root, args, context, info) => Date.now().toString()),
 
 
-        isAuthenticated: (root, args, context) => `Authorized!`,
+
+        isAuthenticated: authenticatedNew((root, args, context) => `Authorized!`),
 
 
         himself: async (root, args, context, info) => {
-
-
-
-
-
-            const authTokenHeader = context.req.headers.authorization;
-            const authToken = authTokenHeader.split("Bearer")[1];
-
-            const secret = context.secret
-
-            try {
-                var user = jwt.verify(authToken.trim(), secret, {
-                    algorithms: "HS384"
-                });
-                return User.findById(user.id);
-            } catch (error) {
-                throw new AuthenticationError('UNAUTHORIZED');
-
+            const user = await readToken(await extractToken(context), context.secret)
+            if (!user) {
+                throw new Error(`UNAUTHORIZED`);
             }
+
+            let userToReturn = await User.findById(user.user._id).lean()
+            userToReturn.id = user.user._id
+            return userToReturn
 
 
 
@@ -103,7 +96,7 @@ export const RESOLVER = {
                 }, */
 
         users: async () => await User.find({}),
-        user: authenticated((root, args, context, info) => {
+        user: authenticatedNew((root, args, context, info) => {
 
             // if (!mongoose.Types.ObjectId.isValid(args.id)) {
             //     throw new UserInputError(`${args.id} cette ID n'est pas valide. `)
@@ -113,10 +106,185 @@ export const RESOLVER = {
 
             checkAuthenticated(context.req)
 
-            users.find((element) => {
-                return element.id = args.id;
-            })
-        })
+            users.find((element) => element.id = args.id)
+        }),
+
+        userTracking: async (root, args, context) => {
+
+            let user, err, userId
+
+
+            (!args.userId) && (user = await readToken(await extractToken(context), context.secret))
+
+            user ? userId = user.user._id : userId = args.userId
+
+            const obj = {
+
+                test: () => "userTrackingType",
+
+                currentArticle: async () => {
+
+
+                    return await UserProgress.findOne({
+                        userId: userId,
+                        courseId: args.courseId,
+
+                    }).sort("-createdAt").limit(1).select("articleId moduleId -_id").lean()
+
+                },
+
+                chapterGrade: async () => {
+
+                    let userRightAnswers = await userAnswer.find({
+                        userId: userId,
+                        courseId: args.courseId,
+                        surveyType: "CHAPTER",
+                        answerType: 'succes',
+                        firstAttempt: true
+                    }).countDocuments()
+
+
+
+                    let userAnswers = await userAnswer.find({
+                        userId: userId,
+                        courseId: args.courseId,
+                        surveyType: "CHAPTER",
+                        // firstAttempt: true
+                    }).estimatedDocumentCount()
+
+
+                    let gradeIndex = (userRightAnswers / userAnswers) * 100
+                    let finalGrade
+
+                    switch (true) {
+                        case 100 >= gradeIndex > 80:
+                            finalGrade = "A"
+                            break;
+                        case 80 > gradeIndex > 55:
+                            finalGrade = "B"
+                            break;
+                        case 55 > gradeIndex > 25:
+                            finalGrade = "C"
+                            break;
+                        case 25 > gradeIndex > 0:
+                            finalGrade = "D"
+                            break;
+                        default:
+                            finalGrade = "N/A"
+                            break;
+                    }
+
+                    return finalGrade
+                },
+                moduleGrade: async () => {
+
+                    let userRightAnswers = await userAnswer.find({
+                        userId: userId,
+                        courseId: args.courseId,
+                        surveyType: "MODULE",
+                        answerType: 'succes',
+                        firstAttempt: true
+                    }).countDocuments()
+
+
+
+                    let userAnswers = await userAnswer.find({
+                        userId: userId,
+                        courseId: args.courseId,
+                        surveyType: "MODULE",
+                        // firstAttempt: true
+                    }).estimatedDocumentCount()
+
+
+                    let gradeIndex = (userRightAnswers / userAnswers) * 100
+                    let finalGrade
+
+                    switch (true) {
+                        case 100 >= gradeIndex > 80:
+                            finalGrade = "A"
+                            break;
+                        case 80 > gradeIndex > 55:
+                            finalGrade = "B"
+                            break;
+                        case 55 > gradeIndex > 25:
+                            finalGrade = "C"
+                            break;
+                        case 25 > gradeIndex > 5:
+                            finalGrade = "D"
+                            break;
+                        default:
+                            finalGrade = "N/A"
+                            break;
+                    }
+
+                    return finalGrade
+                },
+                chapterTime: async () => {
+                    let test = await UserProgress.find({
+                        userId: userId,
+                        courseId: args.courseId
+                    }).select("timeSpent -_id").sort('-createdAt').limit(3)
+
+                    var secondes = test.reduce((previous, current) => Number(previous) + Number(current.timeSpent), 0);
+                    var ratio = secondes / await UserProgress.find({
+                        userId: userId,
+                        courseId: args.courseId
+                    }).select("timeSpent -_id").countDocuments()
+                    return Math.floor(moment.duration(ratio, 'seconds').asHours()) + 'h:' + moment.duration(ratio, 'seconds').minutes() + "m:" + moment.duration(ratio, 'seconds').seconds();
+
+                },
+
+                /**
+                 * /
+                 *Current progression index / total article *100
+                 */
+                courseProgress: async () => {
+                    var currentProgress = await UserProgress.findOne({
+                        userId: userId,
+                        courseId: args.courseId
+                    }).sort('-createdAt').limit(1).lean()
+                    var articleArray = await article.find({
+                        moduleId: currentProgress.moduleId
+                    }).sort("-createdAt").lean()
+
+
+                    var index = articleArray.findIndex((element) => element._id == currentProgress.articleId)
+
+                    return (index / articleArray.length) * 100
+                },
+
+                totalTime: async () => {
+
+                    var time = await UserProgress.find({
+                        userId: userId,
+                        courseId: args.courseId
+                    }).select("timeSpent -_id");
+                    var seconds = time.reduce((previous, current) => Number(previous) + Number(current.timeSpent), 0);
+                    return Math.floor(moment.duration(seconds, 'seconds').asHours()) + 'h:' + moment.duration(seconds, 'seconds').minutes() + "m:" + moment.duration(seconds, 'seconds').seconds();
+
+                },
+
+
+                progress: async () => await UserProgress.find({
+                    userId: userId
+                }).lean(),
+
+
+                surveyReport: async () => {
+                    console.log(await UserAnswer.find({
+                        userId: userId
+                    }))
+                    return await UserAnswer.find({
+                        userId: userId
+                    })
+                }
+
+
+            }
+
+            return obj
+
+        }
 
     },
     Mutation: {
@@ -302,7 +470,6 @@ export const RESOLVER = {
             res.set("x-token", legitToken)
             res.set("x-refresh-token", refreshToken)
 
-            console.log(moment.duration(Number(user.timeSpent), 'seconds').asHours() + " : " + moment.duration(Number(user.timeSpent), 'seconds').asMinutes())
 
 
             return {
@@ -314,7 +481,6 @@ export const RESOLVER = {
             };
 
 
-            return user
 
         },
 
@@ -334,23 +500,27 @@ export const RESOLVER = {
                             throw new ApolloError(err)
                         }); */
 
-            console.log(user.user._id)
+            user.user.id = user.user._id
 
             var failure = {}
+            const moduleQuestion = await module.findById(args.moduleId).lean()
 
             args.articleId && (failure.articleId = args.articleId)
             args.moduleId && (failure.moduleId = args.moduleId)
+            moduleQuestion && (failure.courseId = moduleQuestion.courseId)
 
             failure.surveyType = args.surveyType
             failure.answerType = "failure"
 
             failure.questionId = args.questionId
 
+    
             const newFailure = new UserAnswer({
 
                 id: mongoObjectId(),
                 userId: user.user._id,
                 moduleId: failure.moduleId,
+                courseId: failure.courseId,
                 articleId: failure.articleId,
                 questionId: failure.questionId,
                 surveyType: failure.surveyType,
@@ -388,23 +558,29 @@ export const RESOLVER = {
                             throw new ApolloError(err)
                         }); */
 
-            console.log(user.user._id)
 
             var succes = {}
 
+            const moduleQuestion = await module.findById(args.moduleId).lean()
+
             args.articleId && (succes.articleId = args.articleId)
+            args.courseId && (succes.courseId = args.courseId)
+
             args.moduleId && (succes.moduleId = args.moduleId)
+            moduleQuestion && (failure.courseId = moduleQuestion.courseId)
+
 
             succes.surveyType = args.surveyType
             succes.answerType = "succes"
 
-            failure.questionId = args.questionId
+            succes.questionId = args.questionId
 
             const newSucces = new UserAnswer({
 
                 id: mongoObjectId(),
                 userId: user.user._id,
                 moduleId: succes.moduleId,
+                courseId: succes.courseId,
                 articleId: succes.articleId,
                 questionId: succes.questionId,
                 surveyType: succes.surveyType,
@@ -426,11 +602,14 @@ export const RESOLVER = {
 
             })
 
+            user.user.id = user.user._id
             return user.user
         },
         pushProgress: async (root, args, context) => {
 
             const user = await readToken(await extractToken(context), context.secret)
+            user.user.id = user.user._id
+
 
             const newProgress = new UserProgress({
                 id: mongoObjectId(),
@@ -465,6 +644,8 @@ export const RESOLVER = {
         updateProgress: async (root, args) => {
 
             const user = await readToken(await extractToken(context), context.secret)
+            user.user.id = user.user._id
+
             var progress = {}
 
             args.courseId && (progress.courseId = args.courseId)
@@ -492,6 +673,8 @@ export const RESOLVER = {
 
         updateProgressTime: async (root, args, context, info) => {
             const user = await readToken(await extractToken(context), context.secret)
+            user.user.id = user.user._id
+
             var time = {}
             var progress = {}
             var err, userProgress
@@ -541,6 +724,8 @@ export const RESOLVER = {
 
 
             const user = await readToken(await extractToken(context), context.secret)
+            user.user.id = user.user._id
+
             var modifiedUser = {}
 
             args.courseId && (modifiedUser.courseId = args.courseId)
@@ -570,22 +755,101 @@ export const RESOLVER = {
     },
 
 
+
     User: {
+
+
+        userTrackingByCourse: (root, args) => {
+
+            const objToReturn = {
+                enrolledCourseTest: async () => {
+                    console.log(root.enrolledCourse)
+                    var tt = await User.findById(root.id).select("enrolledCourse -_id")
+                    console.log(tt)
+                    return tt
+                },
+                nestTracking: async (root) => {
+                    /*  //console.log(root.enrolledCourse)
+                     var tt = await UserProgress.find({
+                         courseId: root.enrolledCourse
+                     })
+                     return tt */
+
+                    console.log(root);
+                    const obj = {
+
+                        test: () => {
+                            // console.log(root)
+                            return "rrrttt"
+                        },
+
+                        chapterTime: async () => {
+                            let test = await UserProgress.find({
+                                userId: root.id
+                            }).select("timeSpent -_id")
+                            if (test.length === 0) {
+                                //console.log(root._id);
+
+                                test = await UserProgress.find({
+                                    userId: root._id
+                                }).select("timeSpent -_id")
+                            }
+                            return test.reduce((previous, current) => Number(previous) + Number(current.timeSpent), 0);
+                        },
+                        /**
+                         * TODO QUERY FIELD timeSpent ON USER
+                         */
+                        totalTime: async () => {
+                            var time = await User.findById(root.id).select("timeSpent -_id")
+                            var seconds = Number(time.timeSpent)
+                            return Math.floor(moment.duration(seconds, 'seconds').asHours()) + 'h:' + moment.duration(seconds, 'seconds').minutes();
+
+                        },
+
+
+                        progress: async () => {
+
+                            return await UserProgress.find({
+                                userId: root.id
+                            })
+
+                        },
+
+                        surveyReort: async () => {
+                            return await UserAnswer.find({
+                                userId: root.id
+                            })
+                        }
+
+
+                    }
+
+                    return obj
+                }
+            }
+            return objToReturn
+        },
 
         tracking: (root, args) => {
 
             const obj = {
 
                 test: () => {
-                    console.log(root)
-                    return root.id
+                    return root._id
                 },
 
                 chapterTime: async () => {
                     let test = await UserProgress.find({
                         userId: root.id
                     }).select("timeSpent -_id")
-                    return test.reduce((previous, current) => Number(previous) + Number(current.timeSpent), 0);     
+                    if (test.length === 0) {
+                        //console.log(root._id);
+
+                        test = await UserProgress.find({
+                            userId: root._id
+                        }).select("timeSpent -_id")
+                    }
+                    return test.reduce((previous, current) => Number(previous) + Number(current.timeSpent), 0);
                 },
                 /**
                  * TODO QUERY FIELD timeSpent ON USER
