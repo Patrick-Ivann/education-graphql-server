@@ -10,7 +10,7 @@ const UserProgressSchema = new Schema({
     userId: {
         type: "String"
     },
-    
+
     articleId: {
         type: "String"
     },
@@ -22,9 +22,9 @@ const UserProgressSchema = new Schema({
         type: "String"
     },
 
-timeSpent: {
+    timeSpent: {
         type: "String",
-        default:"1"
+        default: "1"
     },
 }, {
     timestamps: true
