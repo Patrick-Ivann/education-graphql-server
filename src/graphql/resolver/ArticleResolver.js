@@ -58,17 +58,17 @@ let articles = [
 export const RESOLVERMONGO = {
     Query: {
 
-        articles: () => {
+        articles: async() => {
 
-            return Article.find({});
+            return await Article.find({});
         },
-        article: (root, args) => {
+        article: async(root, args) => {
 
             if (!Types.ObjectId.isValid(args.id)) {
                 throw new UserInputError(`${args.id} cette ID n'est pas valide. `)
             }
 
-            return Article.findById(args.id)
+            return await Article.findById(args.id)
         },
 
 
