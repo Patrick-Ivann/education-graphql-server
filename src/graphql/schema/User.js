@@ -129,9 +129,9 @@ updateUser(username :String
 
 
 pushError( articleId: String, moduleId:String, surveyType:String!, questionId:String! ):User
-pushSucces( articleId: String, moduleId:String, surveyType:String!, questionId:String! ):User
+pushSuccess( articleId: String, moduleId:String, surveyType:String!, questionId:String! ):Boolean
 
-pushProgress( articleId: String!, moduleId: String!,courseId:String!):User
+pushProgress( articleId: String!, moduleId: String!,courseId:String!):Boolean
 updateProgress( articleId:String,ModuleId:String):User
 updateProgressTime(timeSpent:String, articleId:String):User
 enrolledToCourse(courseId: String):User

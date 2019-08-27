@@ -243,14 +243,23 @@ export const RESOLVER = {
                         userId: userId,
                         courseId: args.courseId
                     }).sort('-createdAt').limit(1).lean()
+
+                    if (!currentProgress) return "N/A"
+
                     var articleArray = await article.find({
                         moduleId: currentProgress.moduleId
                     }).sort("-createdAt").lean()
 
 
                     var index = articleArray.findIndex((element) => element._id == currentProgress.articleId)
-
-                    return (index / articleArray.length) * 100
+                    
+                    articleArray.forEach(element => {
+                        
+                        console.log(element._id  + " 'rrr " + currentProgress.articleId)
+});
+                    console.log((5 / articleArray.length) * 100)
+                    return currentProgress ? (index / articleArray.length) * 100 : "N/A"
+                    return (index / artxicleArray.length) * 100
                 },
 
                 totalTime: async () => {
@@ -470,11 +479,12 @@ export const RESOLVER = {
             res.set("x-token", legitToken)
             res.set("x-refresh-token", refreshToken)
 
-
+console.log( user._doc)
 
             return {
                 ...user._doc,
                 // timeSpent : moment.duration(user.timeSpent).asHours() + ":" + moment.duration(user.timeSpent).asMinutes(),
+                user: updatedUser,
                 id: user._id,
                 token: legitToken,
                 refreshToken: refreshToken
@@ -514,7 +524,7 @@ export const RESOLVER = {
 
             failure.questionId = args.questionId
 
-    
+
             const newFailure = new UserAnswer({
 
                 id: mongoObjectId(),
@@ -545,7 +555,7 @@ export const RESOLVER = {
             return user.user
         },
 
-        pushSucces: async (root, args, context) => {
+        pushSuccess: async (root, args, context) => {
 
 
 
@@ -567,7 +577,7 @@ export const RESOLVER = {
             args.courseId && (succes.courseId = args.courseId)
 
             args.moduleId && (succes.moduleId = args.moduleId)
-            moduleQuestion && (failure.courseId = moduleQuestion.courseId)
+            moduleQuestion && (succes.courseId = moduleQuestion.courseId)
 
 
             succes.surveyType = args.surveyType
@@ -587,23 +597,28 @@ export const RESOLVER = {
                 answerType: succes.answerType
             })
 
+            let err, success;
+            [err, success] = await to(newSucces.save())
 
-            newSucces.save((err, result) => {
-                if (err) {
-                    console.log("---userSucces save failed " + err)
-                    throw new Error("---userSucces save failed " + err)
+            if (err) {
+                console.log("---userSucces save failed " + err)
+                throw new Error("---userSucces save failed " + err)
 
-                }
-                console.log("+++userSucces saved successfully ")
-                console.log(result)
+            }
 
-                return result
+            console.log("+++userSucces saved successfully ")
+            console.log(success)
+
+            // if (success.firstAttempt && success.surveyType === "CHAPTER") {
+            //     return 1
+            // }
+            if (success.surveyType === "CHAPTER") {
+                return 1
+            }
+            return 0
 
 
-            })
 
-            user.user.id = user.user._id
-            return user.user
         },
         pushProgress: async (root, args, context) => {
 
@@ -619,21 +634,17 @@ export const RESOLVER = {
                 courseId: args.courseId
             })
 
-            newProgress.save((err, result) => {
-                if (err) {
-                    console.log("---userProgress save failed " + err)
-                    throw new Error("---userProgress save failed " + err)
+            let err, progress;
+            [err, progress] = await to(newProgress.save())
+            if (err) {
+                console.log("---userProgress save failed " + err)
+                throw new Error("---userProgress save failed " + err)
 
-                }
-                console.log("+++userProgress saved successfully ")
-                console.log(result)
+            }
+            console.log("+++userProgress saved successfully ")
+            console.log(progress)
 
-                return result
-
-
-            })
-
-            return user
+            return true
 
         },
 
@@ -732,17 +743,17 @@ export const RESOLVER = {
 
 
             User.findOneAndUpdate({
-                userId: user.user._id
+                _id: user.user.id
             }, {
-                $set: {
-                    modifiedUser
+                $addToSet: {
+                    enrolledCourse: modifiedUser.courseId
                 }
+
             }, {
                 new: true
             }).then((result) => {
                 console.log(result)
 
-                return result
             }).catch((error) => console.log(error))
 
             return await User.findById(user.user._id);
