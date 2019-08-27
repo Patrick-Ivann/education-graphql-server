@@ -10,6 +10,7 @@ type Course { #pour le moment on en a qu'un on peut limiter pousser ça en dur d
     subtitle: String!
     introduction : String!
     modules: [Module!]!
+    firstModule: Module
     objectives: [String!]
     requirements: [String!]
     createdAt: String!

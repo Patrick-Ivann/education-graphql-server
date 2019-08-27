@@ -132,6 +132,13 @@ export const RESOLVERMONGO = {
 
     Course: {
 
+        async firstModule(root,args,context,info){
+
+            let id = root.id
+            return await Module.findOne({courseId:id}).sort({title:1}).limit(1)
+
+        },
+
         async modules(root, args, context, info) {
 
             let id = root.id
