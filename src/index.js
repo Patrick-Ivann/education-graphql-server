@@ -54,7 +54,7 @@ httpServer.listen({
 
 
 "use strict";
-require("babel-polyfill");
+// require("babel-polyfill");
 
 var path = require("path")
 
@@ -138,7 +138,7 @@ app.get('/', (req, res) => {
     res.writeHead(200, {
         Connection: 'close'
     });
-    res.end(RESPONSE.MESSAGES.UP_RUNNING);
+    res.end("RESPONSE.MESSAGES.UP_RUNNING");
 });
 
 // Error handler
