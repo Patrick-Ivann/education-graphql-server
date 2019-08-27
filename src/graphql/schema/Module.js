@@ -10,6 +10,7 @@ type Module { # on risque de là aussi tous les renseigner à la création du co
     title: String!
     subtitle: String! # ou genre petitre intro du modules
     introduction : String! #text
+    firstArticle: Article
     chapters: [Article!]! #le nerf de la guerre le champs qui va se faire update le plus souvent certainement 
     questions: [Question!]!
     objectives: [String!] #string to split

@@ -154,6 +154,11 @@ export const RESOLVERMONGO = {
 
     Module: {
 
+        async firstArticle(root,args,context,info) {
+            let id = root.id
+            return await Article.findOne({moduleId:id}).sort({title:1}).limit(1)
+        },
+
         async chapters(root, args, context, info) {
             let id = root.id
             return await Article.find({
