@@ -27,6 +27,9 @@ import {
     typeDef as Question
 } from './schema/Question'
 import {
+    typeDef as Server
+} from './schema/Server'
+import {
     tradeTokenForUser
 } from './resolver/utils/authHelpers.js';
 import {
