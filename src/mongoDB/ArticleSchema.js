@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
+
 
 
 // Define schema
@@ -75,8 +77,13 @@ ArticleSchema.statics.findByModuleId = function (id, cb) {
     }, cb)
 }
 
+ArticleSchema.virtual('id').get(function() { return this._id; });
 
+ArticleSchema.set('toJSON', {
+    virtuals: true
+});
 
+ArticleSchema.plugin(mongooseLeanVirtuals);
 
 const article = mongoose.model('article', ArticleSchema);
 
