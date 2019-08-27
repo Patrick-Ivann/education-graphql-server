@@ -1,7 +1,7 @@
 import {
     ARTICLE_SUBSCRIPTION_TOPIC
 } from "../Resolvers";
-import {
+import to, {
     mongoObjectId
 } from "../../utils";
 import Joi from "Joi";
@@ -19,8 +19,11 @@ import {
 
 import Article from '../../mongoDB/ArticleSchema'
 import Part from '../../mongoDB/PartSchema'
-import { Types } from "mongoose";
+import {
+    Types
+} from "mongoose";
 import question from "../../mongoDB/QuestionSchema";
+import { UserInputError } from "apollo-server-core";
 
 
 const pubsub = new PubSub();
@@ -58,11 +61,11 @@ let articles = [
 export const RESOLVERMONGO = {
     Query: {
 
-        articles: async() => {
+        articles: async () => {
 
             return await Article.find({});
         },
-        article: async(root, args) => {
+        article: async (root, args) => {
 
             if (!Types.ObjectId.isValid(args.id)) {
                 throw new UserInputError(`${args.id} cette ID n'est pas valide. `)
@@ -70,16 +73,43 @@ export const RESOLVERMONGO = {
 
             return await Article.findById(args.id)
         },
+        upcommingArticle: async (root, args) => {
+
+            if (!Types.ObjectId.isValid(args.id)) {
+                console.log(args.id)
+                throw new UserInputError(`${args.id} cette ID n'est pas valide. `)
+            }
+
+            let err, nextArticle;
+
+            [err, nextArticle] = await to(Article.findOne({
+                    _id: {
+                        $lt: args.id
+                    }
+                })
+                .limit(1)
+                .sort({
+                    title: 'asc'
+                }).lean({ virtuals: true })
+            )
+
+
+            return nextArticle ? nextArticle.id : (await Article.findById(args.id).select("moduleId -_id").lean()).moduleId 
+
+
+        },
 
 
         articleByModule: async (root, args) => {
 
-            let fetchedArticle = await Article.find({moduleId : args.moduleId})
+            let fetchedArticle = await Article.find({
+                moduleId: args.moduleId
+            })
 
             console.log(fetchedArticle)
 
-            if (!fetchedArticle || fetchedArticle.length === 0 ) {
-                throw Error ("Aucun article dans ce module.")
+            if (!fetchedArticle || fetchedArticle.length === 0) {
+                throw Error("Aucun article dans ce module.")
             }
             return fetchedArticle
         }
@@ -180,10 +210,10 @@ export const RESOLVERMONGO = {
         async questions(root) {
 
 
-            let id  =root.id 
+            let id = root.id
 
             return await question.find({
-                articleId : id
+                articleId: id
             })
         }
 
@@ -191,7 +221,7 @@ export const RESOLVERMONGO = {
     }
 
 
-    
+
 }
 
 
