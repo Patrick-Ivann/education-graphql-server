@@ -8,9 +8,11 @@ export const typeDef = gql `
 type Module { # on risque de là aussi tous les renseigner à la création du course unique pour le début et juste venir remplir par la suite le tableau d'article
     id: ID!
     title: String!
+    courseId: ID!
     subtitle: String! # ou genre petitre intro du modules
     introduction : String! #text
     firstArticle: Article
+    lastArticle: Article
     chapters: [Article!]! #le nerf de la guerre le champs qui va se faire update le plus souvent certainement 
     questions: [Question!]!
     objectives: [String!] #string to split

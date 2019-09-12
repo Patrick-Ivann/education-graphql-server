@@ -52,12 +52,12 @@ export const RESOLVERMONGO = {
         },
         moduleByCourse: async (root, args) => {
 
-            let fetchedModule = await Module.find({courseId : args.courseId})
+            let fetchedModule = await Module.find({
+                courseId: args.courseId
+            })
 
-            console.log(fetchedModule)
-
-            if (!fetchedModule || fetchedModule.length === 0 ) {
-                throw Error ("Aucun Module dans ce cours.")
+            if (!fetchedModule || fetchedModule.length === 0) {
+                throw Error("Aucun Module dans ce cours.")
             }
             return fetchedModule
         }
@@ -154,10 +154,25 @@ export const RESOLVERMONGO = {
 
     Module: {
 
-        async firstArticle(root,args,context,info) {
+        async firstArticle(root, args, context, info) {
             let id = root.id
-            return await Article.findOne({moduleId:id}).sort({title:1}).limit(1)
+            return await Article.findOne({
+                moduleId: id,
+            }).sort({
+                title: "desc"
+            }).limit(1)
         },
+
+
+ async lastArticle(root, args, context, info) {
+            let id = root.id
+            return await Article.findOne({
+                moduleId: id,
+            }).sort({
+                title: "asc"
+            }).limit(1)
+        },
+        
 
         async chapters(root, args, context, info) {
             let id = root.id
@@ -170,10 +185,10 @@ export const RESOLVERMONGO = {
         async questions(root) {
 
 
-            let id  =root.id 
+            let id = root.id
 
             return await question.find({
-                moduleId : id
+                moduleId: id
             })
         }
 
