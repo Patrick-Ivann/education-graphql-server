@@ -19,6 +19,7 @@ type Article { #complété par 1000 text input ainsi qu'un petit textArea pour l
     introduction : String!
     parts: [Part!]
     questions: [Question!]!
+    isLastOfModule: Boolean!
     moduleId:String!
     createdAt: String!
     updatedAt: String!

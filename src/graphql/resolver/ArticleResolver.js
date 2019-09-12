@@ -23,7 +23,9 @@ import {
     Types
 } from "mongoose";
 import question from "../../mongoDB/QuestionSchema";
-import { UserInputError } from "apollo-server-core";
+import {
+    UserInputError
+} from "apollo-server-core";
 
 
 const pubsub = new PubSub();
@@ -90,11 +92,13 @@ export const RESOLVERMONGO = {
                 .limit(1)
                 .sort({
                     title: 'asc'
-                }).lean({ virtuals: true })
+                }).lean({
+                    virtuals: true
+                })
             )
 
 
-            return nextArticle ? nextArticle.id : (await Article.findById(args.id).select("moduleId -_id").lean()).moduleId 
+            return nextArticle ? nextArticle.id : (await Article.findById(args.id).select("moduleId -_id").lean()).moduleId
 
 
         },
@@ -215,6 +219,29 @@ export const RESOLVERMONGO = {
             return await question.find({
                 articleId: id
             })
+        },
+
+        async isLastOfModule(root) {
+            let id = root.id
+
+            let currentModuleId = (await Article.findById(
+                id
+            )).moduleId
+
+            let listOfArticle = await Article.find({
+                moduleId: currentModuleId
+            }).sort({_id:-1});
+
+            if ((listOfArticle[0].id).toString() === (root.id).toString()) return true
+
+
+            return false
+
+            /**
+             * TODO 1.article et donc moduleId 2.chopper tous les articles du module 3.guetter si c'est le plus jeune
+             * 
+             * 
+             */
         }
 
 
