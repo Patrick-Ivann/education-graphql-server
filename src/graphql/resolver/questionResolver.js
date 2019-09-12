@@ -17,7 +17,7 @@ export const RESOLVERMONGO = {
     Query: {
 
         questions: () => {
-            return Questions.find({})
+            return Question.find({})
         },
         question: (root, args) => {
 
@@ -25,7 +25,7 @@ export const RESOLVERMONGO = {
                 throw new UserInputError(`${args.id} cette ID n'est pas valide. `)
             }
 
-            return Questions.findById(args.id)
+            return Question.findById(args.id)
         }
     },
 
