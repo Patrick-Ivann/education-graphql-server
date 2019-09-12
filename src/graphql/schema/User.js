@@ -48,7 +48,7 @@ type Tracking {
     test : String,
     chapterGrade:String,
     moduleGrade:String,
-
+    articleProgress:[Progress]
 surveyReport : [SurveyReport!]
 #surveyFailure: [SurveyReport!],
 #surveySucces: [SurveyReport]
@@ -64,6 +64,7 @@ type SurveyReport {
     surveyType: String!,
     answerType(type:String): String!
 }
+
 
 type Progress {
     userId: String!,

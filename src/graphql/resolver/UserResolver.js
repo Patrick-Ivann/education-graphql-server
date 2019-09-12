@@ -125,12 +125,21 @@ export const RESOLVER = {
                 currentArticle: async () => {
 
 
-                    return await UserProgress.findOne({
+                    let normalResult =  await UserProgress.findOne({
                         userId: userId,
                         courseId: args.courseId,
 
                     }).sort("-createdAt").limit(1).select("articleId moduleId -_id").lean()
 
+                   /*  let fallbackResult = await UserProgress.findOne({
+
+                        userId: userId
+                    }).sort("-createdAt").select("articleId moduleId -_id").lean()
+
+                    console.log(normalResult)
+                    console.log(fallbackResult)     */ 
+
+                    return normalResult;
                 },
 
                 chapterGrade: async () => {
@@ -252,11 +261,11 @@ export const RESOLVER = {
 
 
                     var index = articleArray.findIndex((element) => element._id == currentProgress.articleId)
-                    
+
                     articleArray.forEach(element => {
-                        
-                        console.log(element._id  + " 'rrr " + currentProgress.articleId)
-});
+
+                        console.log(element._id + " 'rrr " + currentProgress.articleId)
+                    });
                     console.log((5 / articleArray.length) * 100)
                     return currentProgress ? (index / articleArray.length) * 100 : "N/A"
                     return (index / artxicleArray.length) * 100
@@ -273,6 +282,42 @@ export const RESOLVER = {
 
                 },
 
+                articleProgress: async () => await UserProgress.aggregate([{
+                        $project: {
+                            "userId": 1,
+                            "articleId": 1,
+                            "timeSpent": 1,
+                            "moduleId": 1,
+                            "courseId": 1
+                        }
+                    },
+
+                    {
+                        $group: {
+                            _id: "$articleId",
+                            userId: {
+                                $first: '$userId'
+                            },
+                            articleId: {
+                                $first: "$articleId"
+                            },
+                            moduleId: {
+                                $first: "$moduleId"
+                            },
+                            courseId: {
+                                $first: "$courseId"
+                            },
+                            count: {
+                                $sum: 1
+                            },
+                            timeSpent: {
+                                $sum: {
+                                    $toDouble: "$timeSpent"
+                                }
+                            }
+                        },
+                    }
+                ]),
 
                 progress: async () => await UserProgress.find({
                     userId: userId
@@ -479,7 +524,7 @@ export const RESOLVER = {
             res.set("x-token", legitToken)
             res.set("x-refresh-token", refreshToken)
 
-console.log( user._doc)
+            console.log(user._doc)
 
             return {
                 ...user._doc,
@@ -690,6 +735,7 @@ console.log( user._doc)
             var progress = {}
             var err, userProgress
             args.timeSpent && (progress.timeSpent = args.timeSpent);
+            args.moduleId && (progress.moduleId = args.moduleId);
 
 
             [err, userProgress] = await to(
@@ -698,6 +744,7 @@ console.log( user._doc)
                     articleId: args.articleId
                 }, {
                     $set: {
+                        moduleId: args.moduleId,
                         timeSpent: args.timeSpent
                     },
                 }, {

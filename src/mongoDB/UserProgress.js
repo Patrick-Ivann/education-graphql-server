@@ -27,9 +27,16 @@ const UserProgressSchema = new Schema({
         default: "1"
     },
 }, {
-    timestamps: true
+    timestamps: true,
+    toObject: { virtuals: true },
+    toJSON: { virtuals: true }
 })
 
+UserProgressSchema.virtual('timeSpentInt').get(function() { 
+    console.log(this.timeSpent),
+    // console.log(this)
+    console.log(typeof(this.timeSpent))
+    return parseInt(this.timeSpent); });
 
 
 const UserProgress = mongoose.model('userProgress', UserProgressSchema);
